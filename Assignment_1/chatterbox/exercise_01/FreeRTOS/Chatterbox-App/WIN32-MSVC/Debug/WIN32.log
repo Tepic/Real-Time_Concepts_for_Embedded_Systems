@@ -1,11 +1,11 @@
-﻿Build started 27-Oct-18 4:08:47 PM.
-     1>Project "E:\_M21\Real-Time Concepts for Embedded Systems\[02] Exercises\Exercise_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\WIN32.vcxproj" on node 2 (Build target(s)).
+﻿Build started 27-Oct-18 4:28:09 PM.
+     1>Project "E:\_M21\Real-Time Concepts for Embedded Systems\[06] Git-Codes\Real-Time_Concepts_for_Embedded_Systems\Assignment_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\WIN32.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\Source\include /I"..\..\Source\portable\MSVC-MingW" /I..\Common\Include /I"..\..\..\FreeRTOS-Plus\Source\FreeRTOS-Plus-Trace\Include" /I.\Trace_Recorder_Configuration /I. /ZI /nologo /Wall /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _WIN32_WINNT=0x0601 /D WINVER=0x400 /D _CRT_SECURE_NO_WARNINGS /D _VC80_UPGRADE=0x0600 /D _USING_V110_SDK71_ /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /Gd /TC /wd4574 /wd4820 /wd4668 /wd4255 /wd4710 /analyze- /errorReport:prompt /wd4210 /wc4574 main_exercise.c
      1>cl : Command line warning D9002: ignoring unknown option '/wc4574'
          main_exercise.c
-     1>e:\_m21\real-time concepts for embedded systems\[02] exercises\exercise_1\chatterbox\exercise_01\freertos\chatterbox-app\win32-msvc\main_exercise.c(126): warning C4047: '=' : 'char' differs in levels of indirection from 'char *'
-     1>e:\_m21\real-time concepts for embedded systems\[02] exercises\exercise_1\chatterbox\exercise_01\freertos\chatterbox-app\win32-msvc\main_exercise.c(129): warning C4242: '=' : conversion from 'unsigned long' to 'boolean', possible loss of data
+     1>e:\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_1\chatterbox\exercise_01\freertos\chatterbox-app\win32-msvc\main_exercise.c(192): warning C4047: '=' : 'char' differs in levels of indirection from 'char *'
+     1>e:\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_1\chatterbox\exercise_01\freertos\chatterbox-app\win32-msvc\main_exercise.c(195): warning C4242: '=' : conversion from 'unsigned long' to 'boolean', possible loss of data
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/RTOSDemo.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:".\Debug/WIN32.pdb" /SUBSYSTEM:CONSOLE,"5.01" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\Debug\RTOSDemo.lib" /MACHINE:X86 /SAFESEH:NO .\Debug/croutine.obj
          .\Debug/event_groups.obj
@@ -18,9 +18,9 @@
          .\Debug/queue.obj
          .\Debug/tasks.obj
          .\Debug/main_exercise.obj
-         WIN32.vcxproj -> E:\_M21\Real-Time Concepts for Embedded Systems\[02] Exercises\Exercise_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\.\Debug\RTOSDemo.exe
-     1>Done Building Project "E:\_M21\Real-Time Concepts for Embedded Systems\[02] Exercises\Exercise_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\WIN32.vcxproj" (Build target(s)).
+         WIN32.vcxproj -> E:\_M21\Real-Time Concepts for Embedded Systems\[06] Git-Codes\Real-Time_Concepts_for_Embedded_Systems\Assignment_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\.\Debug\RTOSDemo.exe
+     1>Done Building Project "E:\_M21\Real-Time Concepts for Embedded Systems\[06] Git-Codes\Real-Time_Concepts_for_Embedded_Systems\Assignment_1\chatterbox\exercise_01\FreeRTOS\Chatterbox-App\WIN32-MSVC\WIN32.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:06.99
+Time Elapsed 00:00:06.42

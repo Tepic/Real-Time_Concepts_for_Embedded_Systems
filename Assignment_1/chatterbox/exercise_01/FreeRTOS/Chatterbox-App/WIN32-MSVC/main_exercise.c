@@ -85,52 +85,12 @@ typedef struct ChatterboxTask pTask;
 /*
  * TODO: C function (prototype) for task
  */
-void vTask(void *pvParameters)
-{
-	pTask* task = (pTask*) pvParameters;
-	const char *pcTaskName = task->name;//"Task 1 is running\r\n";
-	
-	// volatile uint32_t ul;
-	/*	volatile to ensure ul is not optimized away. */
-	/* As per most tasks, this task is implemented in an infinite loop. */
-	for (;;)
-	{
-		/* Print out the name of this task. */
-		//vPrintString(pcTaskName);
-		//currentTime = xTaskGetTickCount() / portTICK_PERIOD_MS;
-		printf("%s",pcTaskName);
-
-		if (task->periodicity != INFITITY)
-		{
-			task->publishedMessages += 1;
-			if (task->publishedMessages >= task->periodicity)
-			{
-				printf("It has finished its execution - TASK EXECUTED!\r\n");
-				break;
-			}
-		}
-
-		/* Delay for a period. */
-		vTaskDelay(task->period_MS * mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS);
-	}
-	vTaskDelete(NULL);
-}
+void vPrintString(const char *pcString);
+void vTask(void *pvParameters);
 
 
-
-void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, char* message, unsigned long periodicity)
-{
-	task->name = taskName;
-	task->priority = priority;
-	task->period_MS = period;
-	task->message[0] = message;
-	task->publishedMessages = 0;
-
-	task->periodicity = periodicity;
-}
-
+void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, char* message, unsigned long periodicity);
  
-
 /*-----------------------------------------------------------*/
 
 /*** SEE THE COMMENTS AT THE TOP OF THIS FILE ***/
@@ -182,3 +142,55 @@ void main_exercise( void )
 /* 
  * TODO: C function for tasks
  */
+void vPrintString(const char *pcString)
+{
+	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
+	taskENTER_CRITICAL();
+	{
+		printf("%s", pcString);
+		fflush(stdout);
+	}
+	taskEXIT_CRITICAL();
+}
+
+void vTask(void *pvParameters)
+{
+	pTask* task = (pTask*)pvParameters;
+	const char *pcTaskName = task->name;//"Task 1 is running\r\n";
+
+	// volatile uint32_t ul;
+	/*	volatile to ensure ul is not optimized away. */
+	/* As per most tasks, this task is implemented in an infinite loop. */
+	for (;;)
+	{
+		/* Print out the name of this task. */
+		//vPrintString(pcTaskName);
+		//currentTime = xTaskGetTickCount() / portTICK_PERIOD_MS;
+		vPrintString(pcTaskName);
+
+		if (task->periodicity != INFITITY)
+		{
+			task->publishedMessages += 1;
+			if (task->publishedMessages >= task->periodicity)
+			{
+				vPrintString("It has finished its execution - TASK EXECUTED!\r\n");
+				break;
+			}
+		}
+
+		/* Delay for a period. */
+		vTaskDelay(task->period_MS * mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS);
+	}
+	vTaskDelete(NULL);
+}
+
+void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, char* message, unsigned long periodicity)
+{
+	task->name = taskName;
+	task->priority = priority;
+	task->period_MS = period;
+	task->message[0] = message;
+	task->publishedMessages = 0;
+
+	task->periodicity = periodicity;
+}
