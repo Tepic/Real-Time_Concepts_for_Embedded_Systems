@@ -53,10 +53,21 @@
 #include "task.h"
 #include "timers.h"
 
-#define INFITITY 0
-
 /* TODO: Priorities at which the tasks are created.
  */
+#define INFITITY 0
+
+#define HIGH_PRIORITY	7
+#define MEDIUM_PRIORITY	3
+#define LOW_PRIORITY	1
+
+#define TASK_1_PRIORITY MEDIUM_PRIORITY
+#define TASK_2_PRIORITY LOW_PRIORITY 
+#define TASK_3_PRIORITY HIGH_PRIORITY
+
+#define TASK_1_PERIOD_MS 500
+#define TASK_2_PERIOD_MS 500
+#define TASK_3_PERIOD_MS 500
 
 
 /* TODO: output frequencey
@@ -75,10 +86,9 @@ struct ChatterboxTask
 	char* name;
 	unsigned short priority;
 	unsigned long  period_MS;
-	char message[50];
 	unsigned long publishedMessages;
 
-	boolean periodicity;
+	unsigned long periodicity;
 };
 typedef struct ChatterboxTask pTask;
 
@@ -89,46 +99,46 @@ void vPrintString(const char *pcString);
 void vTask(void *pvParameters);
 
 
-void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, char* message, unsigned long periodicity);
+void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, unsigned long periodicity);
  
 /*-----------------------------------------------------------*/
 
 /*** SEE THE COMMENTS AT THE TOP OF THIS FILE ***/
 void main_exercise( void )
 {
-/*
- * TODO: initialize data structures
- */
-
+	/*
+	* TODO: initialize data structures
+	*/
 	struct ChatterboxTask mTask1;
 	struct ChatterboxTask mTask2;
 	struct ChatterboxTask mTask3;
 
-	initTask(&mTask1, "Task1\r\n", 253, 500, "", INFITITY);
-	initTask(&mTask2, "Task2\r\n", 254, 750, "", INFITITY);
-	initTask(&mTask3, "Task3\r\n", 200, 3000, "", 2);
+	initTask(&mTask1, "Task1\r\n", TASK_1_PRIORITY, TASK_1_PERIOD_MS, INFITITY);	// TASK 1 will be executed infinite number of times
+	initTask(&mTask2, "Task2\r\n", TASK_2_PRIORITY, TASK_2_PERIOD_MS, INFITITY);	// TASK 2 will be executed infinite number of times
+	initTask(&mTask3, "Task3\r\n", TASK_3_PRIORITY, TASK_3_PERIOD_MS, 5);			// TASK 3 will be deleted after 2 executions
 
 	/* 
 	 * TODO: Create the task instances.
      */
-		 // TASK 1
-		xTaskCreate(vTask,				/* Pointer to the function that implements the task. */
-			        "Task 1",			/* Text name for the task. This is to facilitate debugging only */
-					1000,				/* Stack depth - small microcontrollers will use much less stack than this. */
-					&mTask1,			/* This example does not use the task parameter. */
-					mTask1.priority,	/* This task will run at priority 1. */
-					NULL);				/* This example does not use the task handle. */
+	
+	// TASK 1
+	xTaskCreate(vTask,				/* Pointer to the function that implements the task. */
+		        "Task 1",			/* Text name for the task. This is to facilitate debugging only */
+				1000,				/* Stack depth - small microcontrollers will use much less stack than this. */
+				&mTask1,			/* This is task parameter. */
+				mTask1.priority,	/* This task will run at priority assigned to task 1. */
+				NULL);				/* This example does not use the task handle. */
 		
-		// TASK 2
-		xTaskCreate(vTask, "Task 2", 1000, &mTask2, mTask2.priority, NULL);
+	// TASK 2
+	xTaskCreate(vTask, "Task 2", 1000, &mTask2, mTask2.priority, NULL);
 
-		// TASK 3
-		xTaskCreate(vTask, "Task 3", 1000, &mTask3, mTask3.priority, NULL);
+	// TASK 3
+	xTaskCreate(vTask, "Task 3", 1000, &mTask3, mTask3.priority, NULL);
 
 	 /*
-	  * TODO: Start the task instances.
-	  */
-		 vTaskStartScheduler();
+	 * TODO: Start the task instances.
+	 */
+	 vTaskStartScheduler();
 
 	/* If all is well, the scheduler will now be running, and the following
 	line will never be reached.  If the following line does execute, then
@@ -156,15 +166,12 @@ void vPrintString(const char *pcString)
 void vTask(void *pvParameters)
 {
 	pTask* task = (pTask*)pvParameters;
-	const char *pcTaskName = task->name;//"Task 1 is running\r\n";
+	const char *pcTaskName = task->name;
 
-	// volatile uint32_t ul;
-	/*	volatile to ensure ul is not optimized away. */
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for (;;)
 	{
 		/* Print out the name of this task. */
-		//vPrintString(pcTaskName);
 		//currentTime = xTaskGetTickCount() / portTICK_PERIOD_MS;
 		vPrintString(pcTaskName);
 
@@ -184,12 +191,11 @@ void vTask(void *pvParameters)
 	vTaskDelete(NULL);
 }
 
-void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, char* message, unsigned long periodicity)
+void initTask(pTask* task, char* taskName, unsigned short priority, unsigned long period, unsigned long periodicity)
 {
 	task->name = taskName;
 	task->priority = priority;
 	task->period_MS = period;
-	task->message[0] = message;
 	task->publishedMessages = 0;
 
 	task->periodicity = periodicity;
