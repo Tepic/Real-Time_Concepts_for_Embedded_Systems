@@ -147,13 +147,14 @@ void vSchedulerTask(void *pvParameters)
 										pFrameList->numTasks[previousFrameIndex],
 										previousFrameIndex
 									  );
-
+		
 		for (uint8_t uTaskIndex = 0; uTaskIndex < pFrameList->numTasks[uCurrentFrameCounter]; uTaskIndex++) {
 
 			workerTask_t* workerTask = pFrameList->pWorkerTasks[uCurrentFrameCounter][uTaskIndex];
 			
 			eTaskState currentTaskState = eTaskGetState(workerTask->xHandle);
-
+			// TODO: We do not only make tasks runnable but we also change their priorities accordingly so they can run
+			// on different times based on the frame list
 			if(currentTaskState != eRunning)
 			{
 				vTaskResume(workerTask->xHandle);
