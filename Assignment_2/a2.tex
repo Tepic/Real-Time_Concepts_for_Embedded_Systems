@@ -15,6 +15,34 @@
 
 \section*{Task 1}
 \subsection*{a)}
+Lets assume we have a task set $\mathbb{T}= \left\{ \begin{array}{c}
+											T_1=(4,1,4),\\
+											T_2=(5,2,7),\\
+											T_3=(20,3,20),\\
+											T_4=(20,2,20),\\
+											\end{array}\right.$
+which has Utilization $U = \frac{1}{4} + \frac{2}{5} + \frac{3}{20} + \frac{2}{20} = \frac{18}{20} < 1$.
+The hyperperiod of this task set would be $H= lcm(4, 5, 20) = 20$ and a Framesize $F=4$ would fullfill the 3 constraints:
+\newline
+$20 ~mod ~4 = 0$
+\newline
+$4 \geq max(1, 2, 3) = 3$
+\newline
+$8 - gcd(4, 4) = 4 \leq 4$
+\newline
+$8 - gcd(5, 4) = 7 \leq 7$
+\newline
+$8 - gcd(20, 4) = 4 \leq 20$
+\newline
+$8 - gcd(20, 4) = 4 \leq 20$
+\newline 
+But if we try to schedule the task set with frame size $F = 4$ we get no feasible scheduling like we can see in figure \ref{fig:1a}.
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{timing-diagram1a.pdf}
+\caption{Task set $\mathbb{T}$ is not schedulable since $T_4$ is missing its deadline.} 
+\label{fig:1a}
+\end{figure}
 \subsection*{b)}
 \subsubsection*{i)}
 Hyperperiod $H = lcm(20,24,30,32,28,27,35,21,42,36) = 30240$
