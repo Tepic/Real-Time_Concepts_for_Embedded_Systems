@@ -116,7 +116,7 @@ void vWorkerTask(void *pvParameters) {
 			uCounter++;
 
 		}
-		printf("I counted %u cycles, took some time.\n", MAX_EXE_TIME * pWorkerTask->uExecutionTime);
+		printf("Task #%u: I counted %u cycles, took some time.\n", pWorkerTask->uTaskNumber, MAX_EXE_TIME * pWorkerTask->uExecutionTime);
 		vTaskSuspend(pWorkerTask->xHandle);
 	}
 
@@ -137,9 +137,9 @@ void vSchedulerTask(void *pvParameters)
 
 	pFrameList = (frameList_t*) pvParameters;
 	
-	while (1) 
+	while (true) 
 	{
-		printf("Scheduling for Frame %u.\n", uCurrentFrameCounter);
+		printf("\nScheduling for Frame %u.\n", uCurrentFrameCounter);
 		fflush(stdout);
 
 		uint8_t previousFrameIndex = (uCurrentFrameCounter - 1 + MAX_NUM_WORKER_TASKS) % MAX_NUM_WORKER_TASKS;
@@ -158,6 +158,8 @@ void vSchedulerTask(void *pvParameters)
 			if(currentTaskState != eRunning)
 			{
 				vTaskResume(workerTask->xHandle);
+				printf("Scheduling task #%u.\n", workerTask->uTaskNumber);
+				fflush(stdout);
 			}
 		}
 		
@@ -260,6 +262,7 @@ void main_exercise( void )
 	* Priority at which the task is created.
 	* Used to pass out the created task's handle.
 	*/
+	
 	xTaskCreate(vWorkerTask, "Task 0", 1000, &workerTask_0, WORKER_TASK_PRIORITY, &workerTask_0.xHandle);
 	xTaskCreate(vWorkerTask, "Task 1", 1000, &workerTask_1, WORKER_TASK_PRIORITY, &workerTask_1.xHandle);
 	xTaskCreate(vWorkerTask, "Task 2", 1000, &workerTask_2, WORKER_TASK_PRIORITY, &workerTask_2.xHandle);
