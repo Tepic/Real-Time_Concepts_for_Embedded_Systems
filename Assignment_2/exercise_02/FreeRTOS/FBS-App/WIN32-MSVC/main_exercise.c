@@ -116,7 +116,7 @@ void vWorkerTask(void *pvParameters) {
 			uCounter++;
 
 		}
-		printf("I counted %u cycles, took some time.", MAX_EXE_TIME * pWorkerTask->uExecutionTime);
+		printf("I counted %u cycles, took some time.\n", MAX_EXE_TIME * pWorkerTask->uExecutionTime);
 		vTaskSuspend(pWorkerTask->xHandle);
 	}
 
@@ -208,7 +208,7 @@ void vPrintString(const char *pcString)
 	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
 	taskENTER_CRITICAL();
 	{
-		printf("%s", pcString);
+		printf("%s\n", pcString);
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();
@@ -251,12 +251,21 @@ void main_exercise( void )
 	/*
 	 * TODO
 	 */
-	xTaskCreate(vWorkerTask, "Task 0", 1000, &workerTask_0, WORKER_TASK_PRIORITY, NULL);
-	xTaskCreate(vWorkerTask, "Task 1", 1000, &workerTask_1, WORKER_TASK_PRIORITY, NULL);
-	xTaskCreate(vWorkerTask, "Task 2", 1000, &workerTask_2, WORKER_TASK_PRIORITY, NULL);
-	xTaskCreate(vWorkerTask, "Task 3", 1000, &workerTask_3, WORKER_TASK_PRIORITY, NULL);
-	xTaskCreate(vWorkerTask, "Task 4", 1000, &workerTask_4, WORKER_TASK_PRIORITY, NULL);
-	xTaskCreate(vWorkerTask, "Task 5", 1000, &workerTask_5, WORKER_TASK_PRIORITY, NULL);
+	/*
+	* FIELDS - Create the task, storing the handle.
+	* Function that implements the task.
+	* Text name for the task.
+	* Stack size in words, not bytes.
+	* Parameter passed into the task.
+	* Priority at which the task is created.
+	* Used to pass out the created task's handle.
+	*/
+	xTaskCreate(vWorkerTask, "Task 0", 1000, &workerTask_0, WORKER_TASK_PRIORITY, &workerTask_0.xHandle);
+	xTaskCreate(vWorkerTask, "Task 1", 1000, &workerTask_1, WORKER_TASK_PRIORITY, &workerTask_1.xHandle);
+	xTaskCreate(vWorkerTask, "Task 2", 1000, &workerTask_2, WORKER_TASK_PRIORITY, &workerTask_2.xHandle);
+	xTaskCreate(vWorkerTask, "Task 3", 1000, &workerTask_3, WORKER_TASK_PRIORITY, &workerTask_3.xHandle);
+	xTaskCreate(vWorkerTask, "Task 4", 1000, &workerTask_4, WORKER_TASK_PRIORITY, &workerTask_4.xHandle);
+	xTaskCreate(vWorkerTask, "Task 5", 1000, &workerTask_5, WORKER_TASK_PRIORITY, &workerTask_5.xHandle);
 	xTaskCreate(vSchedulerTask, "Scheduler", 1000, &frameList, SCHEDULER_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();
