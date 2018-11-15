@@ -62,7 +62,7 @@ const TickType_t mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_M
 #define MAX_EXE_TIME			1000000U
 #define HYPERPERIOD				600U
 #define MAX_NUM_WORKER_TASKS	6
-#define MAX_NUM_FRAMES			5 + 1
+#define MAX_NUM_FRAMES			5
 #define FRAME_SIZE_TIME			120U
 
 #ifndef true
@@ -111,12 +111,14 @@ void vWorkerTask(void *pvParameters) {
 
 	while (true)
 	{
+		TickType_t startTicks = xTaskGetTickCount();
 		while ( uCounter <= MAX_EXE_TIME * pWorkerTask->uExecutionTime || pWorkerTask->isMissbehaved == true ) {
 
 			uCounter++;
 
 		}
-		printf("Task #%u: I counted %u cycles, took some time.\n", pWorkerTask->uTaskNumber, MAX_EXE_TIME * pWorkerTask->uExecutionTime);
+		TickType_t ticks = xTaskGetTickCount() - startTicks;
+		printf("Task #%u: I counted %u cycles, took %i ticks.\n", pWorkerTask->uTaskNumber, MAX_EXE_TIME * pWorkerTask->uExecutionTime, ticks);
 		vTaskSuspend(pWorkerTask->xHandle);
 	}
 
@@ -142,7 +144,7 @@ void vSchedulerTask(void *pvParameters)
 		printf("\nScheduling for Frame %u.\n", uCurrentFrameCounter);
 		fflush(stdout);
 
-		uint8_t previousFrameIndex = (uCurrentFrameCounter - 1 + MAX_NUM_WORKER_TASKS) % MAX_NUM_WORKER_TASKS;
+		uint8_t previousFrameIndex = (uCurrentFrameCounter - 1 + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
 		vCheckIfPreviousFrameSuspended( pFrameList->pWorkerTasks[previousFrameIndex],
 										pFrameList->numTasks[previousFrameIndex],
 										previousFrameIndex
@@ -164,7 +166,7 @@ void vSchedulerTask(void *pvParameters)
 		}
 		
 		/* Delay for a period. */
-		uCurrentFrameCounter = (uCurrentFrameCounter + 1) % MAX_NUM_WORKER_TASKS;
+		uCurrentFrameCounter = (uCurrentFrameCounter + 1) % MAX_NUM_FRAMES;
 		vTaskDelay( FRAME_SIZE_TIME * mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS );
 		
 	}
@@ -185,7 +187,7 @@ void vCheckIfPreviousFrameSuspended(workerTask_t* pWorkerTasks[MAX_NUM_WORKER_TA
 		task->xHandle;
 		eTaskState currentTaskState = eTaskGetState(task->xHandle );
 
-		if ( currentTaskState == eRunning ) {
+		if ( currentTaskState != eSuspended ) {
 
 			printf("Task %u in Frame %u was not suspended. sad.\n", task->uTaskNumber, previousFrameIndex);
 			fflush(stdout);
