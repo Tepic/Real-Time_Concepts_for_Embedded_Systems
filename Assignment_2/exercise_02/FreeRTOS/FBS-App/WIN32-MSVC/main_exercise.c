@@ -66,11 +66,11 @@ const TickType_t mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_M
 #define FRAME_SIZE_TIME			120U
 
 #ifndef true
-#define true 1
+	#define true 1
 #endif 
 
 #ifndef false
-#define false 0
+	#define false 0
 #endif
 
 typedef uint8_t bool_t;
@@ -198,6 +198,8 @@ void vInitWorkerTask(workerTask_t* pWorkerTask, uint8_t uTaskNumber, bool_t isMi
 	pWorkerTask->isMissbehaved = isMissbehaved;
 	pWorkerTask->uTaskNumber = uTaskNumber;
 	pWorkerTask->uExecutionTime = uExecutionTime;
+
+	//xHandle has not been instanced
 }
 
 
