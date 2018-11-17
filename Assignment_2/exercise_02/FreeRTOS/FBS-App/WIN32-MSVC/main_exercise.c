@@ -139,6 +139,22 @@ void vSchedulerTask(void *pvParameters)
 
 	pFrameList = (frameList_t*) pvParameters;
 	
+	workerTask_t* pTasks[6] = { pFrameList->pWorkerTasks[0][0], pFrameList->pWorkerTasks[0][1], pFrameList->pWorkerTasks[0][2], pFrameList->pWorkerTasks[0][3], pFrameList->pWorkerTasks[0][4], pFrameList->pWorkerTasks[0][5] };
+
+	for (uint8_t uTaskIndex = 0; uTaskIndex < MAX_NUM_WORKER_TASKS; uTaskIndex++)
+	{
+
+		workerTask_t* task = pTasks[uTaskIndex];
+		task->xHandle;
+		eTaskState currentTaskState = eTaskGetState(task->xHandle);
+
+		if (currentTaskState != eSuspended)
+		{
+			vTaskSuspend(task->xHandle);
+		}
+	}
+
+	
 	while (true) 
 	{
 		printf("\nScheduling for Frame %u.\n", uCurrentFrameCounter);
