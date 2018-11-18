@@ -54,7 +54,7 @@
 /* TODO: output frequencey
 */
 TickType_t currentTime = 0;
-const TickType_t mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
+const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
 /*-----------------------------------------------------------*/
 
 #define WORKER_TASK_PRIORITY	0 
@@ -103,6 +103,11 @@ void vWorkerTask(void *pvParameters) {
 	uint32_t uCounter = 0;
 	workerTask_t* pWorkerTask;
 
+	// Time ticks
+	TickType_t startTicks = 0;
+	TickType_t endTicks = 0;
+	TickType_t ticks = 0;
+
 	if ( pvParameters == NULL ) {
 		return;
 	}
@@ -111,14 +116,15 @@ void vWorkerTask(void *pvParameters) {
 
 	while (true)
 	{
-		TickType_t startTicks = xTaskGetTickCount();
-		while ( uCounter <= MAX_EXE_TIME * pWorkerTask->uExecutionTime || pWorkerTask->isMissbehaved == true ) {
+		startTicks = xTaskGetTickCount();
+		endTicks = xTaskGetTickCount();
 
-			uCounter++;
-
-		}
-		TickType_t ticks = xTaskGetTickCount() - startTicks;
-		printf("Task #%u: I counted %u cycles, took %i ticks.\n", pWorkerTask->uTaskNumber, MAX_EXE_TIME * pWorkerTask->uExecutionTime, ticks);
+		// Loop exact number of times - depending on the task #
+		for (uCounter = 0; uCounter <= MAX_EXE_TIME * pWorkerTask->uExecutionTime || pWorkerTask->isMissbehaved == true; uCounter++);
+		
+		endTicks = xTaskGetTickCount();
+		ticks = endTicks - startTicks;
+		printf("Task #%u: I counted %u cycles, took %lu ticks.\n", pWorkerTask->uTaskNumber, MAX_EXE_TIME * pWorkerTask->uExecutionTime, ticks);
 		vTaskSuspend(pWorkerTask->xHandle);
 	}
 
@@ -139,8 +145,8 @@ void vSchedulerTask(void *pvParameters)
 
 	pFrameList = (frameList_t*) pvParameters;
 	
+	// Suspending all tasks queued after being created in the main
 	workerTask_t* pTasks[6] = { pFrameList->pWorkerTasks[0][0], pFrameList->pWorkerTasks[0][1], pFrameList->pWorkerTasks[0][2], pFrameList->pWorkerTasks[0][3], pFrameList->pWorkerTasks[0][4], pFrameList->pWorkerTasks[0][5] };
-
 	for (uint8_t uTaskIndex = 0; uTaskIndex < MAX_NUM_WORKER_TASKS; uTaskIndex++)
 	{
 
@@ -166,7 +172,8 @@ void vSchedulerTask(void *pvParameters)
 										previousFrameIndex
 									  );
 		
-		for (uint8_t uTaskIndex = 0; uTaskIndex < pFrameList->numTasks[uCurrentFrameCounter]; uTaskIndex++) {
+		for (uint8_t uTaskIndex = 0; uTaskIndex < pFrameList->numTasks[uCurrentFrameCounter]; uTaskIndex++)
+		{
 
 			workerTask_t* workerTask = pFrameList->pWorkerTasks[uCurrentFrameCounter][uTaskIndex];
 			
@@ -182,9 +189,9 @@ void vSchedulerTask(void *pvParameters)
 		}
 		
 		/* Delay for a period. */
+		// PERIOD: 120ms
 		uCurrentFrameCounter = (uCurrentFrameCounter + 1) % MAX_NUM_FRAMES;
-		vTaskDelay( FRAME_SIZE_TIME * mainTASK_CHATTERBOX_OUTPUT_FREQUENCY_MS );
-		
+		vTaskDelay(FRAME_SIZE_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);		
 	}
 
 }
