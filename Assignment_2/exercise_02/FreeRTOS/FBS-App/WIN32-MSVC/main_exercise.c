@@ -120,7 +120,12 @@ void vWorkerTask(void *pvParameters) {
 		endTicks = xTaskGetTickCount();
 
 		// Loop exact number of times - depending on the task #
-		for (uCounter = 0; uCounter <= MAX_EXE_TIME * pWorkerTask->uExecutionTime || pWorkerTask->isMissbehaved == true; uCounter++);
+		uCounter = 0;
+		while (uCounter <= MAX_EXE_TIME * pWorkerTask->uExecutionTime || pWorkerTask->isMissbehaved == true)
+		{
+			uCounter++;
+		}
+
 		
 		endTicks = xTaskGetTickCount();
 		ticks = endTicks - startTicks;
