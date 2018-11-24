@@ -25,17 +25,25 @@ var te[<i> in Ti] integer >= 0 <= p;
 
 ## TODO: add additional variables,
 # if necessary
+# scheduler
+var sched[<i> in Ti] integer >= 0 <= p;
 
 ## TODO: add objective
 
-
 ## Constraints
-
 ## TODO: add constraints
+# constraint 4.a)
+subto exe_time: forall <i> in Ti do
+					ts[i]+Te[i] == te[i];
 
-subto executionTime: forall <i> in Ti: te[i] - ts[i] == Te[i]
+# constraints 4.b)
+subto start_time: forall <i> in Ti do
+					ts[i] >= Tr[i];
+					
+subto deadline_time: forall <i> in Ti do
+					te[i]<=Td[i];
 
-subto deadlines: forall <i> in Ti: te[i] <= Td[i]
-
-subto releasTimes: forall <i> in Ti: ts[i] >= Tr[i]
-
+					
+#subto no_preemption: forall <i> in Ti do
+#					 forall <j> in Ti do
+#					 	ts[j] >= te[i] and
