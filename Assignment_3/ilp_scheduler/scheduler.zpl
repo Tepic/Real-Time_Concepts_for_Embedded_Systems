@@ -31,7 +31,8 @@ var te[<i> in Ti] integer >= 0 <= p;
 minimize noGap:
 	sum <i> in Ti do
 		sum <j> in Ti with i!=j do
-				vabs(ts[j]-te[i]);
+				vabs(te[j]-ts[i]);
+				#vabs(ts[i]-Tr[i]);
 
 ## Constraints
 ## TODO: add constraints
