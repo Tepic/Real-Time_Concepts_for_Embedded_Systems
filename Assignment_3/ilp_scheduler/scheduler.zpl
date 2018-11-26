@@ -25,10 +25,13 @@ var te[<i> in Ti] integer >= 0 <= p;
 
 ## TODO: add additional variables,
 # if necessary
-# scheduler
-var sched[<i> in Ti] integer >= 0 <= p;
 
 ## TODO: add objective
+#minimize earlyAsPossible: sum <i> in Ti do te[i];
+minimize noGap:
+	sum <i> in Ti do
+		sum <j> in Ti with i!=j do
+				vabs(ts[j]-te[i]);
 
 ## Constraints
 ## TODO: add constraints
@@ -42,8 +45,17 @@ subto start_time: forall <i> in Ti do
 					
 subto deadline_time: forall <i> in Ti do
 					te[i]<=Td[i];
-
 					
 #subto no_preemption: forall <i> in Ti do
-#					 forall <j> in Ti do
-#					 	ts[j] >= te[i] and
+#					 	forall <j> in Ti with i!=j do
+#					 		singletask(ts[i],te[i],ts[j],te[j]);
+
+subto no_preemption:
+	forall <i> in Ti do
+		forall <j> in Ti with i!=j do
+			vif ts[i]+Te[i]<=ts[j] #and ts[i]+Te[i]<=p and ts[i]+Te[i]<=Td[i]
+			then
+				ts[j]>=te[i]
+			else
+				ts[i]>=te[j]
+			end;
