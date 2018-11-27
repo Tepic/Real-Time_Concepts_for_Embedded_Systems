@@ -27,11 +27,11 @@ var te[<i> in Ti] integer >= 0 <= p;
 # if necessary
 
 ## TODO: add objective
-#minimize earlyAsPossible: sum <i> in Ti do te[i];
+#minimize earlyAsPossible: sum <i> in Ti do ts[i];
 minimize noGap:
 	sum <i> in Ti do
 		sum <j> in Ti with i!=j do
-				vabs(te[j]-ts[i]);
+				(vabs(te[j]-ts[i])+(te[j]));
 				#vabs(ts[i]-Tr[i]);
 
 ## Constraints
@@ -45,16 +45,12 @@ subto start_time: forall <i> in Ti do
 					ts[i] >= Tr[i];
 					
 subto deadline_time: forall <i> in Ti do
-					te[i]<=Td[i];
-					
-#subto no_preemption: forall <i> in Ti do
-#					 	forall <j> in Ti with i!=j do
-#					 		singletask(ts[i],te[i],ts[j],te[j]);
+						te[i]<=Td[i];
 
 subto no_preemption:
 	forall <i> in Ti do
 		forall <j> in Ti with i!=j do
-			vif ts[i]+Te[i]<=ts[j] #and ts[i]+Te[i]<=p and ts[i]+Te[i]<=Td[i]
+			vif ts[i]+Te[i]<=ts[j]
 			then
 				ts[j]>=te[i]
 			else
