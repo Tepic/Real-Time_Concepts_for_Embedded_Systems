@@ -28,20 +28,10 @@ var te[<i> in Ti] integer >= 0 <= p;
 
 ## TODO: add objective
 #minimize earlyAsPossible: sum <i> in Ti do ts[i];
-maximize noGap:
+minimize noGap:
 	sum <i> in Ti do
 		sum <j> in Ti with i!=j do
-		if te[i] == ts[j] or te[j] == ts[i] 
-		then 
-		1 
-		else 
-		0
-		end;
-		
-#minimize noGap:
-#	sum <i> in Ti do
-#		sum <j> in Ti with i!=j do
-#				(vabs(te[j]-ts[i])+(te[j]));
+				(vabs(te[j]-ts[i])+(te[j]));
 				#vabs(ts[i]-Tr[i]);
 
 ## Constraints
