@@ -7,7 +7,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{listings}
-\author{Milan Tepic, Ivan Antunovic, Peter von Zameck Glyscinski}
+\author{Milan Tepic, Ivan Antunovic, Kareem Elzayat, Peter von Zameck Glyscinski}
 \title{Assignment 2 Team 5}
 \bibliographystyle{plain}
 
@@ -47,8 +47,21 @@ The resulting timming diagramm to the max-flow solution and also another proof t
 \includegraphics[width=\linewidth]{2a.pdf}
 \label{fig:2a}
 \end{figure}
-\subsection*{b)}
 
+\subsection*{b)}
+$U = \frac{27}{42} = 0.642$
+\newline
+$U_A = \frac{2.5}{31} + \frac{3.375}{45} + \frac{2.25}{54} + \frac{2.5}{32} = 0.275$
+\newline
+$W_0 = \frac{8.25}{62} + \frac{12.625}{90} + \frac{6}{108} + \frac{8}{64} = 0.45$
+\newline
+$\lambda = \frac{1}{31} + \frac{1}{45} + \frac{1}{54} + \frac{1}{32} = 0.104$
+\newline
+$T_{queing} = \frac{W_0}{(1-U)^2[1 - \frac{U_A}{1 - U}]} = \frac{0.45}{(1-0.642)^2[1 - \frac{0.275}{1 - 0.642}]} = 15.144$
+\newline
+$T_{average} = \frac{\frac{2.5}{31} + \frac{3.375}{45} + \frac{2.25}{54} + \frac{2.5}{32}}{\lambda(1 - U)} = \frac{0.275}{0.104(1 - 0.642)} = 7.398$
+\newline
+$W = T_{average} + T_{queing} = 7.398 + 15.144 = 22.542$
 \section*{Task 3}
 \subsection*{a)}
 Check with Utilization bound test:
