@@ -20,6 +20,7 @@
 \caption{Effective Release time and Deadline.} 
 \label{fig:1a}
 \end{figure}
+\newpage
 \subsection*{b)}
 \subsubsection*{i)}
 The graph in figure \ref{fig:1bi} shows the network-flow graph with a feasible solution for the max-flow.
@@ -27,11 +28,18 @@ Edges are labeled with (flow|capacity).
 
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{maxflow_1b.pdf}
+\caption{Network flow graph for task 1 b) i).}
 \label{fig:1bi}
 \end{figure}
 
-The resulting timming diagramm to the max-flow solution and also another proof that the task set is schedulable can be found in figure \ref{fig:1bi}.
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{1b-timming-diagram.pdf}
+\caption{Timming diagram for task 1 b) i).}
+\label{fig:1biTimming}
+\end{figure}
 
+The resulting timming diagramm to the max-flow solution and also another proof that the task set is schedulable can be found in figure \ref{fig:1biTimming}.
+\newpage
 \section*{Task 2}
 \subsection*{a)}
 
@@ -70,7 +78,14 @@ Therefore the task set $T_2$ can be scheduled using RMS.
 \subsection*{c)}
 Since $D$ has the highest plriority we want to choose $x$ such that task $D$ gets a smaller deadline. 
 For that we chose $x=4$ and get new task $D^\prime = (\frac{8}{4}, 60 - \frac{(4 - 1)60}{4}) = (2, 15)$
-With this new task we are able to schedule task set $T_2$ with applied period transformation shown in figure \ref{asd}.
+With this new task we are able to schedule task set $T_2$ with applied period transformation shown in figure \ref{fig:3c}.
+
+
+\begin{figure}[!h]
+\includegraphics[width=\linewidth]{3c.pdf}
+\caption{Timming diagram for task 3 c}
+\label{fig:3c}
+\end{figure}
 
 \subsection*{d)}
 Check with the bound test with blocking(Theorem 16.4\cite{Fan:2015:RES:2800613}):
