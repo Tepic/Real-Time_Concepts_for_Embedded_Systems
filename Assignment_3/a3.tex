@@ -8,7 +8,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \author{Milan Tepic, Ivan Antunovic, Kareem Elzayat, Peter von Zameck Glyscinski}
-\title{Assignment 2 Team 5}
+\title{Assignment 3 Team 5}
 \bibliographystyle{plain}
 
 \begin{document}
@@ -48,6 +48,8 @@ The resulting timming diagramm to the max-flow solution and also another proof t
 \label{fig:2a}
 \end{figure}
 
+\textbf{Note:} If sporadic task gets released within frame k, acceptance test can be only done at the beginning of the k+1 frame.
+
 \subsection*{b)}
 $U = \frac{27}{42} = 0.642$
 \newline
@@ -64,11 +66,11 @@ $T_{average} = \frac{\frac{2.5}{31} + \frac{3.375}{45} + \frac{2.25}{54} + \frac
 $W = T_{average} + T_{queing} = 7.398 + 15.144 = 22.542$
 \section*{Task 3}
 \subsection*{a)}
-Check with Utilization bound test:
+Check if task set $\mathbb{T}_1$ is RMA schedulable using utilization bound test \cite[~p27]{RTCLecture}:
 \newline
 $U = \frac{4}{15} + \frac{4}{20} + \frac{4}{30} + \frac{4}{60} = 0.67 \leq U_{RM}(4) = 4(2^{\frac{1}{4}} - 1) = 0.756$
 
-Therefore the task set $T_1$ can be scheduled using RMS.
+\textbf{Conclusion:} The task set $T_1$ is RMA schedulable.
 
 \subsection*{b)}
 Check with Utilization bound test:
@@ -86,13 +88,11 @@ For task $C$: $C_c = (2 * 4) + (2 * 4) + 8 = 24 \leq 30$
 \newline
 For task $D$: $C_d = (2 * 8) + (3 * 4) + (4 * 4) + 8 = 52 \leq 60$
 
-Therefore the task set $T_2$ can be scheduled using RMS.
+\textbf{Conclusion:} The task set $T_2$ is RMA schedulable.
 
 \subsection*{c)}
-Since $D$ has the highest plriority we want to choose $x$ such that task $D$ gets a smaller deadline. 
-For that we chose $x=4$ and get new task $D^\prime = (\frac{8}{4}, 60 - \frac{(4 - 1)60}{4}) = (2, 15)$
-With this new task we are able to schedule task set $T_2$ with applied period transformation shown in figure \ref{fig:3c}.
-
+Since in current task set $\mathbb{T}_2$, task $A$ has the highest priority we want to choose $x$ such that task $D$ gets a smaller deadline. 
+For that we choose $x=4$, resulting in a transformed task $D^\prime = (\frac{8}{4}, 60 - \frac{(4 - 1)60}{4}) = (2, 15)$. Since $p_{D} = p_{A}$ we assume that Pri(D) > Pri(A). With the new task $D^\prime$ we are able to schedule task set $T_2$ applying period transformation shown in figure \ref{fig:3c}.
 
 \begin{figure}[!h]
 \includegraphics[width=\linewidth]{3c.pdf}
@@ -101,13 +101,80 @@ With this new task we are able to schedule task set $T_2$ with applied period tr
 \end{figure}
 
 \subsection*{d)}
-Check with the bound test with blocking(Theorem 16.4\cite{Fan:2015:RES:2800613}):
+Applying utilization bound test \cite[~p74]{RTCLecture}:\\
 
-$\frac{4}{15} = \frac{4}{15} \leq 1$
+$\frac{e_A}{p_A} + \frac{e_B}{p_B} + \frac{e_C}{p_C} + \frac{e_D}{p_D} + max(\frac{b_C}{p_C}) \leq i($2^\frac{1}{i}-1)$ $  \newline
+
+$\frac{4}{15} + \frac{4}{20} + \frac{8}{30} + \frac{8}{60} + max(\frac{4}{30}) = 1 \leq 4($2^\frac{1}{4}-1) = 0.76$ $ \newline
+
+$1 \nleq 0.76$ 
 \newline
-$\frac{4}{15} + \frac{4}{20} = 0.75 \leq 2(2^{\frac{1}{2}} - 1) = 0.83 $
-\newline
-$\frac{4}{15} + \frac{4}{20} + \frac{8}{30} + \frac{4}{30} = 0.87 \nleq 3(2^{\frac{1}{3}} - 1) = 0.78$
+
+Utilization bound test fails. Thus, we use generalized completion-time test using Time-demand analysis formula \cite[~p74]{RTCLecture}.
+
+ \begin{enumerate}
+    \item Task A: \newline
+    $t_0$ = \sum_{i=1}^{1} $e_i$ = $e_A = 4 \leq d_A = 15$, task A is schedulable.
+    
+    \item Task B: \newline
+    $t_0$ = \sum_{i=1}^{2} $e_i$ = $e_A$ + $e_B$ = 4 + 4 = 8 \\
+    
+    $t_1 = W_1(t_0)$ = $e_B + b_B$ + \sum_{k=1}^{1} $\lceil \frac{t_0}{p_k} \rceil\times e_k$ = $e_B + b_B$ + $\lceil \frac{t_0}{p_A} \rceil\times e_A = 4 + 0 + $\lceil \frac{8}{15} \rceil\times 4 = 8$ \newline
+    
+    Since $t_0 = t_1 = 8$ and $8 = t_1\leq d_B = 20$, task B is schedulable.
+
+    \item Task C: \newline
+
+     $t_0$ = \sum_{i=1}^{3} $e_i$ = $e_A + e_B + e_C$ = 4 + 4 + 8 = 16 \\
+     
+    $t_1 = W_1(t_0)$ = $e_C + b_C$ + \sum_{k=1}^{2} $\lceil \frac{t_0}{p_k} \rceil \times e_k$ = $e_B + b_B + \lceil \frac{t_0}{p_A} \rceil \times e_A + \lceil \frac{t_0}{p_B} \rceil \times e_B$ = 8 + 4 + $\lceil \frac{16}{15} \rceil\times 4 + 
+    \lceil \frac{16}{20} \rceil\times 4 = 24$ \newline
+    
+    $t_2 = W_2(t_1)$ = $e_C + b_C$ + \sum_{k=1}^{2} $\lceil \frac{t_1}{p_k} \rceil\times e_k$ = $e_B + b_B$ + $\lceil \frac{t_1}{p_A} \rceil\times e_A + \lceil \frac{t_1}{p_B} \rceil \times e_B = 8 + 4 + \lceil \frac{24}{15} \rceil\times 4 + 
+    \lceil \frac{24}{20} \rceil\times 4 = 24$ \newline
+    
+    Since $t_1 = t_2 = 24$ and $24 = t_2\leq d_C = 30$, task C is schedulable.
+    
+    
+    
+    \item Task D: \newline
+    $t_0$ = \sum_{i=1}^{4} $e_i$ = $e_A + e_B + e_C + e_D$ = 4 + 4 + 8 + 8 = 24 \\
+    
+    $t_1 = W_1(t_0)$ = $e_D + b_D$ + \sum_{k=1}^{3} $\lceil \frac{t_0}{p_k} \rceil\times e_k$ = $e_D + b_D$ + $\lceil \frac{t_0}{p_A} \rceil\times e_A + \lceil \frac{t_0}{p_B} \rceil\times e_B + \lceil \frac{t_0}{p_C} \rceil\times e_C$ = 8 + 8 + $\lceil 
+    \frac{24}{15} \rceil\times 4 
+    + 
+    \lceil \frac{24}{20} \rceil\times 4
+    + 
+    \lceil \frac{24}{30} \rceil\times 8 = 40$ \\
+    
+    $t_2 = W_2(t_1)$ = $e_D + b_D$ + \sum_{k=1}^{3} $\lceil \frac{t_1}{p_k} \rceil\times e_k$ = $e_D + b_D$ + $\lceil \frac{t_1}{p_A} \rceil\times e_A + \lceil \frac{t_1}{p_B} \rceil\times e_B + \lceil \frac{t_1}{p_C} \rceil\times e_C$ = 8 + 8 + $\lceil 
+    \frac{40}{15} \rceil\times 4 
+    + 
+    \lceil \frac{40}{20} \rceil\times 4
+    + 
+    \lceil \frac{40}{30} \rceil\times 8 = 52$ \\
+    
+    $t_3 = W_3(t_2)$ = $e_D + b_D$ + \sum_{k=1}^{3} $\lceil \frac{t_2}{p_k} \rceil\times e_k$ = $e_D + b_D$ + $\lceil \frac{t_2}{p_A} \rceil\times e_A + \lceil \frac{t_2}{p_B} \rceil\times e_B + \lceil \frac{t_2}{p_C} \rceil\times e_C$ = 8 + 8 + $\lceil 
+    \frac{52}{15} \rceil\times 4 
+    + 
+    \lceil \frac{52}{20} \rceil\times 4
+    + 
+    \lceil \frac{52}{30} \rceil\times 8 = 60$ \newline
+    
+    $t_4 = W_3(t_3)$ = $e_D + b_D$ + \sum_{k=1}^{3} $\lceil \frac{t_3}{p_k} \rceil\times e_k$ = $e_D + b_D$ + $\lceil \frac{t_3}{p_A} \rceil\times e_A + \lceil \frac{t_0}{p_B} \rceil\times e_B + \lceil \frac{t_3}{p_C} \rceil\times e_C$ = 8 + 8 + $\lceil 
+    \frac{60}{15} \rceil\times 4 
+    + 
+    \lceil \frac{60}{20} \rceil\times 4
+    + 
+    \lceil \frac{60}{30} \rceil\times 8 = 60$ \newline
+    
+    
+    Since $t_3 = t_4 = 60$ and $60 = t_3\leq d_D = 60$, task D is schedulable.
+    
+    \textbf{Conclusion:} task set
+    $\mathbb{T}_3$ is RMA schedulable even with blocking.
+    
+  \end{enumerate}
 
 
 \bibliography{bibl}
