@@ -76,6 +76,10 @@ void vTest() {
 	WorkerTask_t* pTask_2 = WorkerTask_vCreate(2, 4, 7);
 	WorkerTask_t* pTask_3 = WorkerTask_vCreate(3, 3, 8);
 	WorkerTask_t* pTask_4 = WorkerTask_vCreate(4, 2, 9);
+	Semaphore_t* pSemaphore_A = Semaphore_vCreate(4, "A");
+	Semaphore_t* pSemaphore_B = Semaphore_vCreate(5, "B");
+	Semaphore_t* pSemaphore_C = Semaphore_vCreate(5, "C");
+
 
 	WorkerTask_vPrint(pTask_1);
 	WorkerTask_vPrint(pTask_2);

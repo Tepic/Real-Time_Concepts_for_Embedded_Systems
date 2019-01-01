@@ -5,20 +5,27 @@
 struct semaphore
 {
 	xSemaphoreHandle semphHandle;
+	uint8_t* uId;
 	uint8_t uPriorityCeiling;
-	uint8_t uId;
 	uint8_t uAcquiredByTaskNum;
 
 };
 
-void Semaphore_vInit(Semaphore_t* pSemaphoreHandle, uint8_t priorityCeiling, uint8_t id) {
-	pSemaphoreHandle->uPriorityCeiling = SEMAPHORE_PRIORITY_CEILING_NONE;
-	pSemaphoreHandle->uId = id;
+Semaphore_t* Semaphore_vCreate(uint8_t uPriorityCeiling, const uint8_t* uId) {
+
+	Semaphore_t* pSemaphoreHandle = (Semaphore_t*)malloc(sizeof(Semaphore_t));
+
+	pSemaphoreHandle->uPriorityCeiling = uPriorityCeiling;
+	pSemaphoreHandle->uId = uId;
 	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 }
 
+void  Semaphore_vDestroy(Semaphore_t* pSemaphore) {
+	free(pSemaphore);
+}
+
 uint8_t Semaphore_vGetId(Semaphore_t* pSemaphoreHandle) {
-	return pSemaphoreHandle->uId;
+	return *(pSemaphoreHandle->uId);
 }
 
 void PIP_vSemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
@@ -69,4 +76,14 @@ bool_t isSemaphoreAcquired(Semaphore_t* pSemaphore) {
 	return true;
 }
 
+void Semaphore_vPrint(Semaphore_t* semaphore) {
+	if (semaphore == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vPrint'. NULL Ptr");
+		return;
+	}
+
+	vPrintString("Semaphore_t: [uId: "); vPrintString(semaphore->uId);
+	vPrintString(", uPriorityCeiling: "); vPrintInteger(semaphore->uPriorityCeiling);
+	vPrintString(", uAcquiredByTaskNum: "); vPrintInteger(semaphore->uAcquiredByTaskNum); vPrintStringLn("]");
+}
 
