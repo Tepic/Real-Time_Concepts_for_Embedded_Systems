@@ -21,7 +21,7 @@ typedef struct semaphore Semaphore_t;
 
 void PIP_vSemaphoreTake(Semaphore_t*, WorkerTask_t*);
 void PIP_vSemaphoreGive(Semaphore_t*);
-void Semaphore_vInit(Semaphore_t* semaphore, const uint8_t priorityCeiling, const uint8_t id);
+void Semaphore_vInit(Semaphore_t* pSemaphoreHandle, uint8_t priorityCeiling, const char* id);
 uint8_t Semaphore_vGetId(Semaphore_t* pSemaphoreHandle);
 static bool_t isSemaphoreAcquired(Semaphore_t*);
 

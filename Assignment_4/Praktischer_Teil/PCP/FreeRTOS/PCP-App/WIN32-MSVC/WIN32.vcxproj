@@ -105,6 +105,7 @@
     <ClCompile Include="Run-time-stats-utils.c" />
     <ClCompile Include="semaphore.c" />
     <ClCompile Include="workerTask.c" />
+    <ClCompile Include="workerTaskList.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\include\event_groups.h" />
@@ -125,6 +126,7 @@
     <ClInclude Include="print.h" />
     <ClInclude Include="semaphore.h" />
     <ClInclude Include="workerTask.h" />
+    <ClInclude Include="workerTaskList.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -7,14 +7,14 @@ struct semaphore
 	xSemaphoreHandle semphHandle;
 	uint8_t uPriorityCeiling;
 	uint8_t* pId;
-	uint8_t uAcquiredTaskNum;
+	uint8_t uAcquiredByTaskNum;
 
 };
 
-void Semaphore_vInit(Semaphore_t* pSemaphoreHandle, uint8_t priorityCeiling, uint8_t* id) {
+void Semaphore_vInit(Semaphore_t* pSemaphoreHandle, uint8_t priorityCeiling, const char* id) {
 	pSemaphoreHandle->uPriorityCeiling = SEMAPHORE_PRIORITY_CEILING_NONE;
 	pSemaphoreHandle->pId = id;
-	pSemaphoreHandle->uAcquiredTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 }
 
 uint8_t Semaphore_vGetId(Semaphore_t* pSemaphoreHandle) {
@@ -29,7 +29,9 @@ void PIP_vSemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireReso
 		return;
 	}
 
-	pSemaphore->uAcquiredTaskNum = WorkerTask_vGetTaskNumber(pTaskToAquireResource);
+	// Since lock is successful, update semaphore's info; semaphore locked by the current task
+	pSemaphore->uAcquiredByTaskNum = WorkerTask_vGetTaskNumber(pTaskToAquireResource);
+
 	// TODO: change priority of the task for ICPP
 	// acquire the semaphore
 	vPrintString("Task "); vPrintInteger(WorkerTask_vGetTaskNumber(pTaskToAquireResource)); 
@@ -40,11 +42,12 @@ void PIP_vSemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireReso
 
 void PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle) {
 
-	pSemaphoreHandle->uAcquiredTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 }
 
 bool_t isSemaphoreAcquired(Semaphore_t* pSemaphore) {
-	if (pSemaphore->uAcquiredTaskNum == SEMAPHORE_AQUIRED_BY_NONE) {
+
+	if (pSemaphore->uAcquiredByTaskNum == SEMAPHORE_AQUIRED_BY_NONE) {
 		return false;
 	}
 	return true;
