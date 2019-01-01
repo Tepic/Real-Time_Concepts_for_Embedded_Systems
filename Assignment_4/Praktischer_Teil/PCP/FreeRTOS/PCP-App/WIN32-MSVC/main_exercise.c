@@ -55,6 +55,7 @@
 #include "workerTask.h"
 #include "print.h"
 #include "semaphore.h"
+#include "gll.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
@@ -68,6 +69,48 @@
 static void vUselessLoad(uint32_t ulCycles);
 
 /*-----------------------------------------------------------*/
+
+void vTest() {
+	gll_t* taskList = gll_init();
+
+	WorkerTask_t* pTask_1 = WorkerTask_vCreate(1, 5, 5);
+	WorkerTask_t* pTask_2 = WorkerTask_vCreate(2, 4, 7);
+	WorkerTask_t* pTask_3 = WorkerTask_vCreate(3, 3, 8);
+	WorkerTask_t* pTask_4 = WorkerTask_vCreate(4, 2, 9);
+
+	WorkerTask_vPrint(pTask_1);
+	WorkerTask_vPrint(pTask_2);
+	WorkerTask_vPrint(pTask_3);
+	WorkerTask_vPrint(pTask_4);
+	
+	gll_pushBack(taskList, pTask_1);
+	gll_pushBack(taskList, pTask_2);
+	gll_pushBack(taskList, pTask_3);
+	gll_pushBack(taskList, pTask_4);
+
+	vPrintStringLn("After pushing to the list and popping");
+
+	/* Get from an empty list */
+	WorkerTask_vPrint(gll_get(taskList, 0));
+	WorkerTask_vPrint(gll_get(taskList, 1));
+	WorkerTask_vPrint(gll_get(taskList, 2));
+	WorkerTask_vPrint(gll_get(taskList, 3));
+
+	vPrintStringLn("After pushing to the list and popping");
+
+	/* Get from an empty list */
+	WorkerTask_vPrint(gll_get(taskList, 0));
+	WorkerTask_vPrint(gll_get(taskList, 1));
+	WorkerTask_vPrint(gll_get(taskList, 2));
+	WorkerTask_vPrint(gll_get(taskList, 3));
+
+	
+
+	WorkerTaskList_vDestroy(pTask_1);
+	WorkerTaskList_vDestroy(pTask_2);
+	WorkerTaskList_vDestroy(pTask_3);
+	WorkerTaskList_vDestroy(pTask_4);
+}
 
 void main_exercise( void )
 {
@@ -88,7 +131,9 @@ void main_exercise( void )
 		return;
 	}
 
-	vPrintString("Starting the application...");
+	vPrintStringLn("Starting the application...");
+
+	vTest();
 	for( ;; );
 }
 /*-----------------------------------------------------------*/

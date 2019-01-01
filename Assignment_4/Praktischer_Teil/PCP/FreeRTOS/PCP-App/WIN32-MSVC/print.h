@@ -18,7 +18,7 @@ void vPrintStringLn(const char *pcString)
 	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
 	taskENTER_CRITICAL();
 	{
-		printf("%s", pcString);
+		printf("%s\n", pcString);
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();
