@@ -54,7 +54,6 @@
 /* Other Includes */
 #include "workerTask.h"
 #include "print.h"
-#include "PIP.h"
 #include "semaphore.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )

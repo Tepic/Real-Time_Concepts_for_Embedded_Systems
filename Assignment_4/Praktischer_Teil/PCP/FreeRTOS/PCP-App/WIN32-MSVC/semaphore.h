@@ -9,14 +9,18 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-typedef struct semaphore
-{
-	xSemaphoreHandle semphHandle;
-	uint8_t priorityCeiling;
-	uint8_t id;
+/* Other includes */
+#include "bool_t.h"
+#include "print.h"
 
-} Semaphore_t;
+#define SEMAPHORE_AQUIRED_NONE -1
+#define SEMAPHORE_PRIORITY_CEILING_NONE -1
 
-void Semaphore_vInit(Semaphore_t* pWorkerTask, uint8_t priorityCeiling, uint8_t id);
+typedef struct semaphore Semaphore_t;
+
+void PIP_vSemaphoreTake(SemaphoreHandle_t);
+void PIP_vSemaphoreGive(SemaphoreHandle_t);
+void Semaphore_vInit(Semaphore_t* pWorkerTask, uint8_t priorityCeiling, const uint8_t id);
+static bool_t isSemaphoreHolded();
 
 #endif //end SEMAPHORE_H_

@@ -67,10 +67,10 @@
     <ClCompile Include="main_exercise.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="PIP.c">
+    <ClCompile Include="workerTask.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="workerTask.c">
+    <ClCompile Include="semaphore.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
   </ItemGroup>
@@ -121,9 +121,6 @@
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="workerTask.h">
-      <Filter>PCP-App Source\PCP-App</Filter>
-    </ClInclude>
-    <ClInclude Include="PIP.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="semaphore.h">
