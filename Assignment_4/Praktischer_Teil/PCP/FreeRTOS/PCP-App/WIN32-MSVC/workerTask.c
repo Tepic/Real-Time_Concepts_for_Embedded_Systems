@@ -1,6 +1,6 @@
 #include "workerTask.h"
 
-/* Make workerTask fields private this way*/
+/* Make workerTask fields private this way */
 struct workerTask 
 {
 	TaskHandle_t xHandle;
