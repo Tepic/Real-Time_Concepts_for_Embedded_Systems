@@ -61,21 +61,50 @@
 // TODO
 
 static void vUselessLoad(uint32_t ulCycles);
+static void vPrintString(const char *pcString);
 
 /*-----------------------------------------------------------*/
 
 void main_exercise( void )
 {
 	// TODO
+	SemaphoreHandle_t xSemaphore_A;
+	SemaphoreHandle_t xSemaphore_B;
+	SemaphoreHandle_t xSemaphore_C;
 
+	// Should we create binary of counting semaphore?
+	vSemaphoreCreateBinary(xSemaphore_A);
+	vSemaphoreCreateBinary(xSemaphore_B);
+	vSemaphoreCreateBinary(xSemaphore_C);
+
+	if (xSemaphore_A == NULL || xSemaphore_B == NULL || xSemaphore_C == NULL)
+	{
+		vPrintString("The semaphore was created unsuccessfully.");
+		vPrintString("Exiting the application.");
+		return;
+	}
+
+	vPrintString("Starting the application...");
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
 
+static void vPrintString(const char *pcString)
+{
+	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
+	taskENTER_CRITICAL();
+	{
+		printf("%s\n", pcString);
+		fflush(stdout);
+	}
+	taskEXIT_CRITICAL();
+}
+
+
 static void vUselessLoad(uint32_t ulTimeUnits) {
 uint32_t ulUselessVariable = 0;
 
-	for (uint32_t i = 0; i < ulTimeUnits*workersUSELESS_CYCLES_PER_TIME_UNIT; i++)
+	for (uint32_t i = 0; i < ulTimeUnits * workersUSELESS_CYCLES_PER_TIME_UNIT; i++)
 	{
 		ulUselessVariable = 0;
 		ulUselessVariable = ulUselessVariable + 1;
