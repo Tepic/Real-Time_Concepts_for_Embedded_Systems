@@ -11,15 +11,8 @@
 /* Other includes */
 #include "bool_t.h"
 
-typedef struct workerTask
-{
-	TaskHandle_t xHandle;
-	bool_t isMissbehaved;
-	uint32_t uExecutionTime;
-	uint8_t uTaskNumber;
+typedef struct workerTask WorkerTask_t;
 
-} WorkerTask_t;
-
-void WorkerTask_vInit(WorkerTask_t* pWorkerTask, uint8_t uTaskNumber, bool_t isMissbehaved, uint32_t uExecutionTime);
+void WorkerTask_vInit(WorkerTask_t* pWorkerTask, uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime);
 
 #endif //end TASK_H_
