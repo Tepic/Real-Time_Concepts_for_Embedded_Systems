@@ -32,6 +32,7 @@ void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
 }
 
+
 uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);
 }
