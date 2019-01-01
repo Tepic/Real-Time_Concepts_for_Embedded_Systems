@@ -1,4 +1,5 @@
 #include "workerTask.h"
+#include "print.h"
 
 /* Make workerTask fields private this way */
 struct workerTask 
@@ -32,6 +33,14 @@ void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
 }
 
+WorkerTask_t* WorkerTask_vArray(WorkerTask_t* pWorkerTasks, uint8_t uIndex) {
+	if (pWorkerTasks == NULL || uIndex < 0) {
+		vPrintStringLn("Error in WorkerTask_vArray");
+		return;
+	}
+
+	return pWorkerTasks[uIndex];
+}
 
 uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);

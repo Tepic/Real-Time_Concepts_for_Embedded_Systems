@@ -4,7 +4,7 @@
 
 struct workerTaskList {
 
-	WorkerTask_t* pWorkerTasks;
+	WorkerTask_t** pWorkerTasks;
 	uint8_t uLenght;
 
 };
@@ -34,7 +34,9 @@ WorkerTask_t* WorkerTaskList_vGetElement(WorkerTaskList_t* pTaskList, uint8_t uI
 		vPrintStringLn("Error in WorkerTaskList_vGetElement. Wrong index lenght!");
 		return;
 	}
-
+	
+	WorkerTask_vArray(pTaskList->pWorkerTasks, uIndex);
+	pTaskList->pWorkerTasks[uIndex];
 	//return pTaskList->pWorkerTasks;
 }
 
