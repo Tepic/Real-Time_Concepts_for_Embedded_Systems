@@ -11,6 +11,7 @@
 
 static void vPrintStringLn(const char *pcString);
 static void vPrintString(const char *pcString);
+static void vPrintInteger(uint8_t intVal);
 
 void vPrintStringLn(const char *pcString)
 {
@@ -18,6 +19,17 @@ void vPrintStringLn(const char *pcString)
 	taskENTER_CRITICAL();
 	{
 		printf("%s", pcString);
+		fflush(stdout);
+	}
+	taskEXIT_CRITICAL();
+}
+
+void vPrintInteger(uint8_t intVal)
+{
+	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
+	taskENTER_CRITICAL();
+	{
+		printf("%d", intVal);
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();
