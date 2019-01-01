@@ -111,6 +111,12 @@
     <ClInclude Include="..\..\Source\include\stream_buffer.h">
       <Filter>FreeRTOS Source\Include</Filter>
     </ClInclude>
+    <ClInclude Include="task.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
+    <ClInclude Include="bool_t.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -51,6 +51,9 @@
 #include "timers.h"
 #include "semphr.h"
 
+/* Other Includes */
+#include "task.h"
+
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
 // TODO
@@ -62,6 +65,7 @@
 
 static void vUselessLoad(uint32_t ulCycles);
 static void vPrintString(const char *pcString);
+static void PIP_semaphoreTake(SemaphoreHandle_t);
 
 /*-----------------------------------------------------------*/
 
@@ -71,6 +75,9 @@ void main_exercise( void )
 	SemaphoreHandle_t xSemaphore_A;
 	SemaphoreHandle_t xSemaphore_B;
 	SemaphoreHandle_t xSemaphore_C;
+
+	WorkerTask_t workerTask;
+	workerTask.isMissbehaved = false;
 
 	// Should we create binary of counting semaphore?
 	vSemaphoreCreateBinary(xSemaphore_A);
@@ -98,6 +105,10 @@ static void vPrintString(const char *pcString)
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();
+}
+
+static void PIP_semaphoreTake(SemaphoreHandle_t semaphore) {
+
 }
 
 
