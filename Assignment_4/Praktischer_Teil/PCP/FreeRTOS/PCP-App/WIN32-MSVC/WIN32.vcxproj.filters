@@ -76,6 +76,9 @@
     <ClCompile Include="workerTaskList.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
+    <ClCompile Include="semaphoreList.c">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeRTOSConfig.h">
@@ -133,6 +136,9 @@
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="workerTaskList.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
+    <ClInclude Include="semaphoreList.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
   </ItemGroup>

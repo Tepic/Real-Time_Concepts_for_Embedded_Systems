@@ -9,9 +9,9 @@
 typedef struct semaphoreList SemaphoreList_t;
 
 /* Function declarations */
-int8_t WorkerTaskList_vCreate(SemaphoreList_t* pSemaphoreList, uint8_t uLenght);
-uint8_t WorkerTaskList_vGetLength(SemaphoreList_t* pSemaphoreList);
-WorkerTask_t* WorkerTaskList_vGetElement(SemaphoreList_t* pSemaphoreList, uint8_t uIndex);
-void WorkerTaskList_vDestroy(SemaphoreList_t* pSemaphoreList);
+int8_t SemaphoreList_vCreate(SemaphoreList_t* pSemaphoreList, uint8_t uLenght);
+uint8_t SemaphoreList_vGetLength(SemaphoreList_t* pSemaphoreList);
+WorkerTask_t* SemaphoreList_vGetElement(SemaphoreList_t* pSemaphoreList, uint8_t uIndex);
+void SemaphoreList_vDestroy(SemaphoreList_t* pSemaphoreList);
 
 #endif // SEMAPHORE_TASK_LIST_H_

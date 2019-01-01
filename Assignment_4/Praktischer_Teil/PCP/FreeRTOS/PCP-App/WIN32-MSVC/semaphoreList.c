@@ -9,7 +9,7 @@ struct semaphoreList {
 
 };
 
-int8_t WorkerTaskList_vCreate(SemaphoreList_t* pSemaphoreList, uint8_t uLenght) {
+int8_t SemaphoreList_vCreate(SemaphoreList_t* pSemaphoreList, uint8_t uLenght) {
 	if (uLenght < 1) {
 		return -1;
 	}
@@ -21,11 +21,11 @@ int8_t WorkerTaskList_vCreate(SemaphoreList_t* pSemaphoreList, uint8_t uLenght) 
 	}
 }
 
-uint8_t WorkerTaskList_vGetLength(SemaphoreList_t* pSemaphoreList) {
+uint8_t SemaphoreList_vGetLength(SemaphoreList_t* pSemaphoreList) {
 	return pSemaphoreList->pSemaphores;
 }
 
-WorkerTask_t* WorkerTaskList_vGetElement(SemaphoreList_t* pSemaphoreList, uint8_t uIndex) {
+WorkerTask_t* SemaphoreList_vGetElement(SemaphoreList_t* pSemaphoreList, uint8_t uIndex) {
 	if (uIndex < 0 || uIndex > pSemaphoreList->uLenght) {
 		vPrintStringLn("Error in WorkerTaskList_vGetElement. Wrong index lenght!");
 		return;
@@ -34,6 +34,6 @@ WorkerTask_t* WorkerTaskList_vGetElement(SemaphoreList_t* pSemaphoreList, uint8_
 	//return pTaskList->pWorkerTasks[uIndex];
 }
 
-void WorkerTaskList_vDestroy(SemaphoreList_t* pSemaphoreList) {
+void SemaphoreList_vDestroy(SemaphoreList_t* pSemaphoreList) {
 	free(pSemaphoreList->pSemaphores);
 }
