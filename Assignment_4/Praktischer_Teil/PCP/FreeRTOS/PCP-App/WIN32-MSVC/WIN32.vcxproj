@@ -102,7 +102,9 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="main_exercise.c" />
+    <ClCompile Include="PIP.c" />
     <ClCompile Include="Run-time-stats-utils.c" />
+    <ClCompile Include="workerTask.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\include\event_groups.h" />
@@ -120,7 +122,9 @@
     <ClInclude Include="..\..\Source\include\queue.h" />
     <ClInclude Include="..\..\Source\include\semphr.h" />
     <ClInclude Include="..\..\Source\include\task.h" />
-    <ClInclude Include="task.h" />
+    <ClInclude Include="PIP.h" />
+    <ClInclude Include="semaphore.h" />
+    <ClInclude Include="workerTask.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

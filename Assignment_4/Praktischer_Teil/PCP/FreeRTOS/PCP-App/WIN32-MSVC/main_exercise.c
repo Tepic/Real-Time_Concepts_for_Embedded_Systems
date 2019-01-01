@@ -52,7 +52,7 @@
 #include "semphr.h"
 
 /* Other Includes */
-#include "task.h"
+#include "workerTask.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
@@ -75,9 +75,6 @@ void main_exercise( void )
 	SemaphoreHandle_t xSemaphore_A;
 	SemaphoreHandle_t xSemaphore_B;
 	SemaphoreHandle_t xSemaphore_C;
-
-	WorkerTask_t workerTask;
-	workerTask.isMissbehaved = false;
 
 	// Should we create binary of counting semaphore?
 	vSemaphoreCreateBinary(xSemaphore_A);
