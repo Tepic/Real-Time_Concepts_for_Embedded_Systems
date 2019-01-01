@@ -7,22 +7,16 @@
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
 #include "semphr.h"
 
-/* Other includes */
-#include "bool_t.h"
-
-typedef struct workerTask
+typedef struct semaphore
 {
-	TaskHandle_t xHandle;
-	bool_t isMissbehaved;
-	uint32_t uExecutionTime;
-	uint8_t uTaskNumber;
+	xSemaphoreHandle semphHandle;
+	uint8_t priorityCeiling;
+	uint8_t id;
 
-} WorkerTask_t;
+} Semaphore_t;
 
-void WorkerTask_vInit(WorkerTask_t* pWorkerTask, uint8_t uTaskNumber, bool_t isMissbehaved, uint32_t uExecutionTime);
+void Semaphore_vInit(Semaphore_t* pWorkerTask, uint8_t priorityCeiling, uint8_t id);
 
 #endif //end SEMAPHORE_H_

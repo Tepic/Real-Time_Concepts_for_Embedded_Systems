@@ -4,7 +4,13 @@
 static bool_t isSemaphoreHolded();
 
 void PIP_vSemaphoreTake(SemaphoreHandle_t semaphore) {
-	isSemaphoreHolded();
+
+	if (isSemaphoreHolded(semaphore)) {
+
+		return;
+	}
+
+	vPrintString("Task <x> acquired resource <y> and changed its priority from <i> to <j>.");
 }
 
 void PIP_vSemaphoreGive(SemaphoreHandle_t semaphore) {

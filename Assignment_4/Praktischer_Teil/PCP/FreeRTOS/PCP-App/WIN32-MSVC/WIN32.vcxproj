@@ -123,6 +123,7 @@
     <ClInclude Include="..\..\Source\include\semphr.h" />
     <ClInclude Include="..\..\Source\include\task.h" />
     <ClInclude Include="PIP.h" />
+    <ClInclude Include="print.h" />
     <ClInclude Include="semaphore.h" />
     <ClInclude Include="workerTask.h" />
   </ItemGroup>

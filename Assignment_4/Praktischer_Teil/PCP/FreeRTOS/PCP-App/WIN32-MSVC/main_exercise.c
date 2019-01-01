@@ -53,6 +53,9 @@
 
 /* Other Includes */
 #include "workerTask.h"
+#include "print.h"
+#include "PIP.h"
+#include "semaphore.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
@@ -64,8 +67,6 @@
 // TODO
 
 static void vUselessLoad(uint32_t ulCycles);
-static void vPrintString(const char *pcString);
-static void PIP_semaphoreTake(SemaphoreHandle_t);
 
 /*-----------------------------------------------------------*/
 
@@ -92,21 +93,6 @@ void main_exercise( void )
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
-
-static void vPrintString(const char *pcString)
-{
-	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
-	taskENTER_CRITICAL();
-	{
-		printf("%s\n", pcString);
-		fflush(stdout);
-	}
-	taskEXIT_CRITICAL();
-}
-
-static void PIP_semaphoreTake(SemaphoreHandle_t semaphore) {
-
-}
 
 
 static void vUselessLoad(uint32_t ulTimeUnits) {
