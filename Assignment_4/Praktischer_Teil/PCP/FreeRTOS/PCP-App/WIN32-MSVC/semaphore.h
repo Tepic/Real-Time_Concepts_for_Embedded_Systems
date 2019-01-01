@@ -19,7 +19,7 @@
 
 typedef struct semaphore Semaphore_t;
 
-void PIP_vSemaphoreTake(Semaphore_t*, WorkerTask_t* resourceRequestingTask);
+void PIP_vSemaphoreTake(Semaphore_t*, WorkerTask_t*);
 void PIP_vSemaphoreGive(Semaphore_t*);
 void Semaphore_vInit(Semaphore_t* semaphore, const uint8_t priorityCeiling, const uint8_t id);
 static bool_t isSemaphoreAcquired(Semaphore_t*);
