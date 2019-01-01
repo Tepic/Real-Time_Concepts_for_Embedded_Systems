@@ -19,12 +19,12 @@ void Semaphore_vInit(Semaphore_t* semaphoreHandle, uint8_t priorityCeiling, uint
 
 void PIP_vSemaphoreTake(Semaphore_t* resourceRequestingTask, WorkerTask_t* workerTask) {
 
-	if (isSemaphoreHolded(resourceRequestingTask)) {
+	if (isSemaphoreAcquired(resourceRequestingTask)) {
 		// Transmit its active priority to the task that holds the semaphore
 		// Suspend current task
 		return;
 	}
-	resourceRequestingTask->uAcquiredByTask = workerTask->uTaskNumber;
+	//resourceRequestingTask->uAcquiredByTask = workerTask->uTaskNumber;
 	// change priority of the task for ICPP
 	// acquire the semaphore
 	vPrintString("Task <x> acquired resource <y> and changed its priority from <i> to <j>.");
