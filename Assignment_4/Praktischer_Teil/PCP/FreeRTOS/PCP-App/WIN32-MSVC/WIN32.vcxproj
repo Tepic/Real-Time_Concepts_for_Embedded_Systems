@@ -105,7 +105,6 @@
     <ClCompile Include="main_exercise.c" />
     <ClCompile Include="Run-time-stats-utils.c" />
     <ClCompile Include="semaphore.c" />
-    <ClCompile Include="semaphoreList.c" />
     <ClCompile Include="workerTask.c" />
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +126,6 @@
     <ClInclude Include="gll.h" />
     <ClInclude Include="print.h" />
     <ClInclude Include="semaphore.h" />
-    <ClInclude Include="semaphoreList.h" />
     <ClInclude Include="workerTask.h" />
   </ItemGroup>
   <ItemGroup>

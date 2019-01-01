@@ -73,9 +73,6 @@
     <ClCompile Include="semaphore.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="semaphoreList.c">
-      <Filter>PCP-App Source\PCP-App</Filter>
-    </ClCompile>
     <ClCompile Include="gll.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
@@ -133,9 +130,6 @@
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="print.h">
-      <Filter>PCP-App Source\PCP-App</Filter>
-    </ClInclude>
-    <ClInclude Include="semaphoreList.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="gll.h">

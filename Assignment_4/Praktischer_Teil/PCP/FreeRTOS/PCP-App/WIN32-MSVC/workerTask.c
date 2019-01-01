@@ -30,26 +30,39 @@ void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask) {
 }
 
 uint8_t WorkerTask_vGetTaskNumber(WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vGetTaskNumber'. NULL Pointer");
+	}
 	return pWorkerTask->uTaskNumber;
 }
 
+TaskHandle_t WorkerTask_vGetHandle(WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'Semaphore_vGetHandle'. NULL Pointer");
+	}
+	return pWorkerTask->xHandle;
+}
+
 void WorkerTask_vSetActivePriority(WorkerTask_t* pWorkerTask, uint8_t uActivePriority) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vSetActivePriority'. NULL Pointer");
+	}
 	pWorkerTask->uActivePriority = uActivePriority;
 }
 
-void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {
-	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
+uint8_t WorkerTask_vGetActivePriority(WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vGetActivePriority'. NULL Pointer");
+	}
+	return pWorkerTask->uActivePriority;
 }
 
-/*
-WorkerTask_t* WorkerTask_vArray(WorkerTask_t* pWorkerTasks, uint8_t uIndex) {
-	if (pWorkerTasks == NULL || uIndex < 0) {
-		vPrintStringLn("Error in WorkerTask_vArray");
-		return;
+void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vResetActivePriority'. NULL Pointer");
 	}
-
-	//return pWorkerTasks[uIndex];
-}*/
+	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
+}
 
 uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);
@@ -57,7 +70,7 @@ uint8_t WorkerTask_vSizeOf() {
 
 void WorkerTask_vPrint(WorkerTask_t* task) {
 	if (task == NULL) {
-		vPrintStringLn("Error in function 'WorkerTask_vPrint'. NULL Ptr");
+		vPrintStringLn("Error in function 'WorkerTask_vPrint'. NULL Pointer");
 		return;
 	}
 

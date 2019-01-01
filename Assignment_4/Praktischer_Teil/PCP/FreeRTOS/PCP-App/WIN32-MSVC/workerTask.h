@@ -20,7 +20,8 @@ void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
 uint8_t WorkerTask_vGetTaskNumber(WorkerTask_t* pWorkerTask);
 void WorkerTask_vSetActivePriority(WorkerTask_t* pWorkerTask, uint8_t uActivePriority);
 void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask);
-void WorkerTask_vArray(WorkerTask_t* pWorkerTask, uint8_t uIndex);
+uint8_t WorkerTask_vGetActivePriority(WorkerTask_t* pWorkerTask);
+TaskHandle_t WorkerTask_vGetHandle(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 uint8_t WorkerTask_vSizeOf();
 

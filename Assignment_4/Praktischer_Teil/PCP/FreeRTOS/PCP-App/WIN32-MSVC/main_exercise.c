@@ -71,6 +71,7 @@ static void vUselessLoad(uint32_t ulCycles);
 
 void vTest() {
 	gll_t* taskList = gll_init();
+	gll_t* semaphoreList = gll_init();
 
 	WorkerTask_t* pTask_1 = WorkerTask_vCreate(1, 5, 5);
 	WorkerTask_t* pTask_2 = WorkerTask_vCreate(2, 4, 7);
@@ -80,16 +81,36 @@ void vTest() {
 	Semaphore_t* pSemaphore_B = Semaphore_vCreate(5, "B");
 	Semaphore_t* pSemaphore_C = Semaphore_vCreate(5, "C");
 
-
 	WorkerTask_vPrint(pTask_1);
 	WorkerTask_vPrint(pTask_2);
 	WorkerTask_vPrint(pTask_3);
 	WorkerTask_vPrint(pTask_4);
-	
+
 	gll_pushBack(taskList, pTask_1);
 	gll_pushBack(taskList, pTask_2);
 	gll_pushBack(taskList, pTask_3);
 	gll_pushBack(taskList, pTask_4);
+	vPrintString("Size of the taskList: "); vPrintInteger(taskList->size); vPrintStringLn("");
+
+	Semaphore_vPrint(pSemaphore_A);
+	Semaphore_vPrint(pSemaphore_B);
+	Semaphore_vPrint(pSemaphore_C);
+
+	gll_pushBack(semaphoreList, pSemaphore_A);
+	gll_pushBack(semaphoreList, pSemaphore_B);
+	gll_pushBack(semaphoreList, pSemaphore_C);
+	vPrintString("Size of the semaphoreList: "); vPrintInteger(semaphoreList->size); vPrintStringLn("");
+
+	vPrintStringLn("After pushing to the list and popping");
+
+	/* Get from an empty list */
+	WorkerTask_vPrint(gll_get(taskList, 0));
+	WorkerTask_vPrint(gll_get(taskList, 1));
+	WorkerTask_vPrint(gll_get(taskList, 2));
+	WorkerTask_vPrint(gll_get(taskList, 3));
+	Semaphore_vPrint(pSemaphore_A);
+	Semaphore_vPrint(pSemaphore_B);
+	Semaphore_vPrint(pSemaphore_C);
 
 	vPrintStringLn("After pushing to the list and popping");
 
@@ -99,18 +120,17 @@ void vTest() {
 	WorkerTask_vPrint(gll_get(taskList, 2));
 	WorkerTask_vPrint(gll_get(taskList, 3));
 
-	vPrintStringLn("After pushing to the list and popping");
-
-	/* Get from an empty list */
-	WorkerTask_vPrint(gll_get(taskList, 0));
-	WorkerTask_vPrint(gll_get(taskList, 1));
-	WorkerTask_vPrint(gll_get(taskList, 2));
-	WorkerTask_vPrint(gll_get(taskList, 3));
+	Semaphore_vPrint(pSemaphore_A);
+	Semaphore_vPrint(pSemaphore_B);
+	Semaphore_vPrint(pSemaphore_C);
 
 	WorkerTask_vDestroy(pTask_1);
 	WorkerTask_vDestroy(pTask_2);
 	WorkerTask_vDestroy(pTask_3);
 	WorkerTask_vDestroy(pTask_4);
+	Semaphore_vDestroy(pSemaphore_A);
+	Semaphore_vDestroy(pSemaphore_B);
+	Semaphore_vDestroy(pSemaphore_C);
 }
 
 void main_exercise( void )
