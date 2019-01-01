@@ -26,12 +26,16 @@ uint8_t WorkerTaskList_vGetLength(WorkerTaskList_t* pTaskList) {
 }
 
 WorkerTask_t* WorkerTaskList_vGetElement(WorkerTaskList_t* pTaskList, uint8_t uIndex) {
+	if (pTaskList == NULL) {
+		vPrintStringLn("Error in WorkerTaskList_vGetElement. NULL pointer!");
+	}
+
 	if (uIndex < 0 || uIndex > pTaskList->uLenght) {
 		vPrintStringLn("Error in WorkerTaskList_vGetElement. Wrong index lenght!");
 		return;
 	}
 
-	//return pTaskList->pWorkerTasks[uIndex];
+	//return pTaskList->pWorkerTasks;
 }
 
 void WorkerTaskList_vDestroy(WorkerTaskList_t* pTaskList) {
