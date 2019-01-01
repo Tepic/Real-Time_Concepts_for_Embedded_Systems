@@ -81,6 +81,7 @@
     <ClCompile Include="..\..\Source\portable\MemMang\heap_5.c" />
     <ClCompile Include="..\..\Source\stream_buffer.c" />
     <ClCompile Include="..\..\Source\timers.c" />
+    <ClCompile Include="gll.c" />
     <ClCompile Include="main.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -106,7 +107,6 @@
     <ClCompile Include="semaphore.c" />
     <ClCompile Include="semaphoreList.c" />
     <ClCompile Include="workerTask.c" />
-    <ClCompile Include="workerTaskList.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\include\event_groups.h" />
@@ -124,11 +124,11 @@
     <ClInclude Include="..\..\Source\include\queue.h" />
     <ClInclude Include="..\..\Source\include\semphr.h" />
     <ClInclude Include="..\..\Source\include\task.h" />
+    <ClInclude Include="gll.h" />
     <ClInclude Include="print.h" />
     <ClInclude Include="semaphore.h" />
     <ClInclude Include="semaphoreList.h" />
     <ClInclude Include="workerTask.h" />
-    <ClInclude Include="workerTaskList.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

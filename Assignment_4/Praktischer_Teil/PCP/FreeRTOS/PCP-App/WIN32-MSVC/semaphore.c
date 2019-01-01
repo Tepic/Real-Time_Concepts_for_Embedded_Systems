@@ -21,7 +21,7 @@ uint8_t Semaphore_vGetId(Semaphore_t* pSemaphoreHandle) {
 	return pSemaphoreHandle->uId;
 }
 
-void PIP_vSemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, WorkerTaskList_t* pTaskList) {
+void PIP_vSemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
 
 	if (isSemaphoreAcquired(pSemaphore)) {
 		// Transmit its active priority to the task that holds the semaphore
@@ -46,16 +46,17 @@ void PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle) {
 }
 
 /* Transmit its active priority to the task that holds the semaphore */
-void transmitTasksActivePriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, WorkerTaskList_t* pTaskList) {
-	for (uint8_t index = 0; index < WorkerTaskList_vGetLength(pTaskList); ++index) {
+//void transmitTasksActivePriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, WorkerTaskList_t* pTaskList) {
+void transmitTasksActivePriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask) {
+	//for (uint8_t index = 0; index < WorkerTaskList_vGetLength(pTaskList); ++index) {
 
-		WorkerTask_t* pTaskThatHoldsSemaphore = WorkerTaskList_vGetElement(pTaskList, index);
+	//	WorkerTask_t* pTaskThatHoldsSemaphore = WorkerTaskList_vGetElement(pTaskList, index);
 			/*
 		if (pSemaphore->uAcquiredByTaskNum == WorkerTask_vGetTaskNumber(pBlocked) {
 
 		}
 		return;*/
-	}
+	//}
 
 	vPrintStringLn("Error in 'transmitTasksActivePriority' function");
 }

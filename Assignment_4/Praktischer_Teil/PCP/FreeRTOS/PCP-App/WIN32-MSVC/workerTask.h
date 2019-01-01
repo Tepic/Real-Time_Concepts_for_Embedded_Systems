@@ -16,7 +16,7 @@ typedef struct workerTask WorkerTask_t;
 
 /* Function declarations */
 WorkerTask_t* WorkerTask_vCreate(uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime);
-void  WorkerTask_vDelete(WorkerTask_t* pWorkerTask);
+void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
 uint8_t WorkerTask_vGetTaskNumber(WorkerTask_t* pWorkerTask);
 void WorkerTask_vSetActivePriority(WorkerTask_t* pWorkerTask, uint8_t uActivePriority);
 void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask);

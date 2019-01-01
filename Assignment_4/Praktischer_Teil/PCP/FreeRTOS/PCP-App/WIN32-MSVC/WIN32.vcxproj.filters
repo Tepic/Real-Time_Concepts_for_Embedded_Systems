@@ -73,10 +73,10 @@
     <ClCompile Include="semaphore.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="workerTaskList.c">
+    <ClCompile Include="semaphoreList.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="semaphoreList.c">
+    <ClCompile Include="gll.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
   </ItemGroup>
@@ -135,10 +135,10 @@
     <ClInclude Include="print.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
-    <ClInclude Include="workerTaskList.h">
+    <ClInclude Include="semaphoreList.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
-    <ClInclude Include="semaphoreList.h">
+    <ClInclude Include="gll.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
   </ItemGroup>

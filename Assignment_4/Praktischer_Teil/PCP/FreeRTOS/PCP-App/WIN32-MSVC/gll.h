@@ -1,3 +1,6 @@
+#ifndef _GLL_H_
+#define _GLL_H_
+
 /* 
  * File:     gll.h
  * Author:   Philip Klostermann 
@@ -49,3 +52,4 @@ void gll_eachReverse(gll_t *, void (*f)(void *));
 void gll_clear(gll_t *);
 void gll_destroy(gll_t *);
 
+#endif _GLL_H_

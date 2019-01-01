@@ -55,7 +55,6 @@
 #include "workerTask.h"
 #include "print.h"
 #include "semaphore.h"
-#include "gll.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
@@ -104,12 +103,10 @@ void vTest() {
 	WorkerTask_vPrint(gll_get(taskList, 2));
 	WorkerTask_vPrint(gll_get(taskList, 3));
 
-	
-
-	WorkerTaskList_vDestroy(pTask_1);
-	WorkerTaskList_vDestroy(pTask_2);
-	WorkerTaskList_vDestroy(pTask_3);
-	WorkerTaskList_vDestroy(pTask_4);
+	WorkerTask_vDestroy(pTask_1);
+	WorkerTask_vDestroy(pTask_2);
+	WorkerTask_vDestroy(pTask_3);
+	WorkerTask_vDestroy(pTask_4);
 }
 
 void main_exercise( void )

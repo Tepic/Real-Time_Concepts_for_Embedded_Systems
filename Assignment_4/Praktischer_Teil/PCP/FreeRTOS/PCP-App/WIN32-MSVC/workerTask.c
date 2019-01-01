@@ -25,7 +25,7 @@ WorkerTask_t* WorkerTask_vCreate(uint8_t uTaskNumber, uint8_t nominalPriority, u
 	return pWorkerTask;
 }
 
-void  WorkerTask_vDelete(WorkerTask_t* pWorkerTask) {
+void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask) {
 	free(pWorkerTask);
 }
 
