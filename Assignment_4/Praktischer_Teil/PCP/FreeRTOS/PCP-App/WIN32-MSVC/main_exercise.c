@@ -144,24 +144,25 @@ void vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(Semaphore_t* pSemaphore_A, W
 
 void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShouldBeSortedInAList(Semaphore_t* pSemaphore_A, gll_t* taskList) {
 
-
 	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
 	WorkerTask_t* pTask_2 = gll_get(taskList, 2);
 	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
-	WorkerTask_t* pTask_4 = gll_get(taskList, 4);
+	WorkerTask_t* blockingTask = gll_get(taskList, 4);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
 
 	if (retVal != 0) {
 		assert();
 		return;
 	}
 
-	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
 	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
 	PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
 
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	vPrintStringLn("The BLOCKING Task: ");
+	WorkerTask_vPrint(blockingTask);
 
 	testPassed();
 }

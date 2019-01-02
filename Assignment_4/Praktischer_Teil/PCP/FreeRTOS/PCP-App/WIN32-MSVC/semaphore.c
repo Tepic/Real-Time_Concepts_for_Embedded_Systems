@@ -61,15 +61,16 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	int8_t retVal;
 
 	if (isSemaphoreAcquired(pSemaphore)) {
-		// Transmit its active priority to the task that holds the semaphore
-		PIP_inheritPriority(pSemaphore, pTaskToAquireResource, pTaskList);
-
+	
 		// TODO: Sort list by ascending WorkerTask_t::uActivePriority
 		// Insert task to appropriate index inside the list of blocked tasks
 		// The blocked tasks ask are sorted in descending order w.r.t. priorities
 		// E.g. the blocked task with lowest priority should be at the end of the list
 		WorkerTask_vListPrintPriority(pSemaphore->pBlockedTaskList);
 		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskToAquireResource);
+
+		// Transmit its active priority to the task that holds the semaphore
+		PIP_inheritPriority(pSemaphore, pTaskToAquireResource, pTaskList);
 
 		printf("%s%d%s%c%s\n", "Task ", WorkerTask_vGetTaskNumber(pTaskToAquireResource), " failed to acquire semaphore ", pSemaphore->uId, "and task gets blocked");
 		retVal = 1;
@@ -78,7 +79,7 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 
 	// acquire the semaphore
 	if (xSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
-		// TODO: Uncomment
+		// TODO: Uncomment after testing
 		//return -1;
 	}
 
