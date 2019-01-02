@@ -73,7 +73,25 @@ static void prvTask4(void *pvParameters);
 
 /*-----------------------------------------------------------*/
 
+void assert() {
+	vPrintStringLn("Error while testing");
+}
 
+void testPassed() {
+	vPrintStringLn("Tesst passed");
+}
+
+
+void vTest_SemaphoreIsNotAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_1, gll_t* taskList) {
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	testPassed();
+}
 
 void vTest() {
 	gll_t* taskList = gll_init();
@@ -87,49 +105,17 @@ void vTest() {
 	Semaphore_t* pSemaphore_B = Semaphore_Create(5, "B");
 	Semaphore_t* pSemaphore_C = Semaphore_Create(5, "C");
 
-	WorkerTask_vPrint(pTask_1);
-	WorkerTask_vPrint(pTask_2);
-	WorkerTask_vPrint(pTask_3);
-	WorkerTask_vPrint(pTask_4);
-
 	gll_pushBack(taskList, pTask_1);
 	gll_pushBack(taskList, pTask_2);
 	gll_pushBack(taskList, pTask_3);
 	gll_pushBack(taskList, pTask_4);
-	vPrintString("Size of the taskList: "); vPrintInteger(taskList->size); vPrintStringLn("");
-
-	Semaphore_vPrint(pSemaphore_A);
-	Semaphore_vPrint(pSemaphore_B);
-	Semaphore_vPrint(pSemaphore_C);
 
 	gll_pushBack(semaphoreList, pSemaphore_A);
 	gll_pushBack(semaphoreList, pSemaphore_B);
 	gll_pushBack(semaphoreList, pSemaphore_C);
-	vPrintString("Size of the semaphoreList: "); vPrintInteger(semaphoreList->size); vPrintStringLn("");
 
-	vPrintStringLn("After pushing to the list and popping");
-
-	/* Get from an empty list */
-	WorkerTask_vPrint(gll_get(taskList, 0));
-	WorkerTask_vPrint(gll_get(taskList, 1));
-	WorkerTask_vPrint(gll_get(taskList, 2));
-	WorkerTask_vPrint(gll_get(taskList, 3));
-	Semaphore_vPrint(pSemaphore_A);
-	Semaphore_vPrint(pSemaphore_B);
-	Semaphore_vPrint(pSemaphore_C);
-
-	vPrintStringLn("After pushing to the list and popping");
-
-	/* Get from an empty list */
-	WorkerTask_vPrint(gll_get(taskList, 0));
-	WorkerTask_vPrint(gll_get(taskList, 1));
-	WorkerTask_vPrint(gll_get(taskList, 2));
-	WorkerTask_vPrint(gll_get(taskList, 3));
-
-	Semaphore_vPrint(pSemaphore_A);
-	Semaphore_vPrint(pSemaphore_B);
-	Semaphore_vPrint(pSemaphore_C);
-
+	vTest_SemaphoreIsNotAquired(pSemaphore_A, pTask_1, taskList);
+	
 	WorkerTask_vDestroy(pTask_1);
 	WorkerTask_vDestroy(pTask_2);
 	WorkerTask_vDestroy(pTask_3);

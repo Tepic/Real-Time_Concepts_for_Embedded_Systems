@@ -22,7 +22,7 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber,
 	pWorkerTask->uTaskNumber = uTaskNumber;
 	pWorkerTask->uExecutionTime = uExecutionTime;
 
-	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, pWorkerTask->xHandle);
+	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
 	
 	return pWorkerTask;
 }

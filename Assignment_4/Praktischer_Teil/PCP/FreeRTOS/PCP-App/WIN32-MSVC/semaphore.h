@@ -23,7 +23,7 @@ typedef struct semaphore Semaphore_t;
 
 /* Function declarations */
 int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList);
-void PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource);
+int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle);
 Semaphore_t* Semaphore_Create(uint8_t priorityCeiling, const uint8_t* id);
 void  Semaphore_vDestroy(Semaphore_t* pSemaphore);
 uint8_t Semaphore_GetId(Semaphore_t* pSemaphoreHandle);

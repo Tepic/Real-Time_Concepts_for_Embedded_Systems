@@ -4,7 +4,7 @@
 // Make Semaphore_t private
 struct semaphore
 {
-	xSemaphoreHandle semphHandle;
+	SemaphoreHandle_t semphHandle;
 	uint8_t* uId;
 	uint8_t uPriorityCeiling;
 	uint8_t uAcquiredByTaskNum;
@@ -13,13 +13,18 @@ struct semaphore
 
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t* uId) {
 
-	Semaphore_t* pSemaphoreHandle = (Semaphore_t*)malloc(sizeof(Semaphore_t));
+	Semaphore_t* pSemaphore = (Semaphore_t*)malloc(sizeof(Semaphore_t));
+	pSemaphore->semphHandle = xSemaphoreCreateBinary();
 
-	pSemaphoreHandle->uPriorityCeiling = uPriorityCeiling;
-	pSemaphoreHandle->uId = uId;
-	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	if (pSemaphore->semphHandle == NULL) {
+		return NULL;
+	}
 
-	return pSemaphoreHandle;
+	pSemaphore->uPriorityCeiling = uPriorityCeiling;
+	pSemaphore->uId = uId;
+	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+
+	return pSemaphore;
 }
 
 void  Semaphore_vDestroy(Semaphore_t* pSemaphore) {
@@ -37,8 +42,8 @@ uint8_t Semaphore_GetId(Semaphore_t* pSemaphore) {
 void PIP_inheritPriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, gll_t* pTaskList) {
 
 	WorkerTask_t* pBlockingTask = gll_get(pTaskList, pSemaphore->uAcquiredByTaskNum);
-	// Inehrit priority
-	WorkerTask_vSetActivePriority( pBlockedTask, WorkerTask_vGetActivePriority(pBlockingTask) );
+	// Inherit priority
+	WorkerTask_vSetActivePriority( pBlockingTask, WorkerTask_vGetActivePriority(pBlockedTask) );
 
 }
 
@@ -57,7 +62,8 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 		retVal = 1;
 	}
 
-	if (xQueueSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
+	// acquire the semaphore
+	if (xSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
 		return -1;
 	}
 
@@ -65,26 +71,27 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	pSemaphore->uAcquiredByTaskNum = WorkerTask_vGetTaskNumber(pTaskToAquireResource);
 	
 	// TODO: change priority of the task for ICPP
-	// acquire the semaphore
 	vPrintString("Task "); vPrintInteger(WorkerTask_vGetTaskNumber(pTaskToAquireResource)); 
 	vPrintString(" acquired resource "); vPrintString(pSemaphore->uId);
 	//TODO: ICCP 
 	// vPrintString("Task <x> acquired resource <y> and changed its priority from <i> to <j>.");
-
 	return 0;
-	
 }
 
-void PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource) {
+int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle) {
 
 	if (pSemaphoreHandle == NULL) {
 		vPrintStringLn("Error in function 'PIP_vSemaphoreGive'. NULL Pointer");
 	}
-
+	
 	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 	// Current task blocked on a semaphore is activated on unlock
-	vTaskResume(WorkerTask_vGetHandle(pTaskToReleaseResource));
-	//TODO: Add output here
+	if (xSemaphoreGive(pSemaphoreHandle->semphHandle) != pdTRUE) {
+		return -1;
+	}
+
+	vPrintString("Resource "); vPrintString(pSemaphoreHandle->uId); vPrintString(" gets released");
+	return 0;
 }
 
 
