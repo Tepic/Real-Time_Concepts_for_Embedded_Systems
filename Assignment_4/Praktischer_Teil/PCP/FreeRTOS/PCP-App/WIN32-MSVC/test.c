@@ -26,7 +26,7 @@ void testPassed() {
 
 
 void vTest_SemaphoreIsNotAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_1, gll_t* taskList) {
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, pTask_1, taskList);
 
 	if (retVal != 0) {
 		assert();
@@ -37,7 +37,7 @@ void vTest_SemaphoreIsNotAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_
 }
 
 void vTest_SemaphoreIsAlreadyAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_1, WorkerTask_t* pTask_2, gll_t* taskList) {
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, pTask_2, taskList);
 
 	if (retVal != 0) {
 		assert();
@@ -45,7 +45,7 @@ void vTest_SemaphoreIsAlreadyAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pT
 	}
 
 	uint8_t uOld_Task_2_active_priority = pTask_2->uActivePriority;
-	retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_A, pTask_1, taskList);
 
 	// Should be retVal == 0
 	if (retVal != 0) {
@@ -67,16 +67,16 @@ void vTest_SemaphoreIsAlreadyAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pT
 }
 
 void vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(Semaphore_t* pSemaphore_A, WorkerTask_t* blockedTask, WorkerTask_t* blockingTask, gll_t* taskList) {
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 
 	if (retVal != 0) {
 		assert();
 		return;
 	}
 
-	retVal = PIP_SemaphoreTake(pSemaphore_A, blockedTask, taskList);
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockedTask, taskList);
 
-	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	PIP_vBinarySemaphoreGive(pSemaphore_A, blockingTask);
 	if (blockingTask->uActivePriority != blockingTask->uNominalPriority) {
 		assert();
 		return;
@@ -95,7 +95,7 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShou
 	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 
 	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
@@ -108,13 +108,13 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShou
 
 	/*
 	WorkerTask_t* blockingTask = gll_get(taskList, 2);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_2, taskList);
 	*/
-	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_2, taskList);
 
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	vPrintStringLn("The BLOCKING Task: ");
@@ -133,7 +133,7 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBl
 	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 
 	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
@@ -144,9 +144,9 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBl
 		return;
 	}
 
-	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_3, taskList);
 
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	vPrintStringLn("The BLOCKING Task: ");
@@ -167,7 +167,7 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseT
 	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 
 	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
 	WorkerTask_vPrint(blockingTask);
@@ -178,15 +178,15 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseT
 		return;
 	}
 
-	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
-	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_BinarySemaphoreTake(pSemaphore_A, pTask_3, taskList);
 
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	vPrintStringLn("The BLOCKING Task: ");
 	WorkerTask_vPrint(blockingTask);
 
-	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	PIP_vBinarySemaphoreGive(pSemaphore_A, blockingTask);
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	vPrintStringLn("After releasing BLOCKING Task: ");
 	WorkerTask_vPrint(blockingTask);
@@ -222,7 +222,7 @@ void vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriorit
 	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
 	WorkerTask_vPrint(blockingTask);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 	if (retVal != 0) {
 		assert();
 		return;
@@ -240,7 +240,7 @@ void vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriorit
 	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
 	WorkerTask_vPrint(blockingTask);
 
-	retVal = PIP_SemaphoreTake(pSemaphore_C, blockingTask, taskList);
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_C, blockingTask, taskList);
 	if (retVal != 0) {
 		assert();
 		return;
@@ -259,12 +259,12 @@ void vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriorit
 	WorkerTask_vPrint(blockingTask);
 
 	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_B->uId - 1 + '0');
-	PIP_vSemaphoreGive(pSemaphore_B, blockingTask);
+	PIP_vBinarySemaphoreGive(pSemaphore_B, blockingTask);
 	WorkerTask_vListPrintPriority(pSemaphore_B->pBlockedTaskList);
 	WorkerTask_vPrint(blockingTask);
 
 	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
-	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	PIP_vBinarySemaphoreGive(pSemaphore_A, blockingTask);
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	WorkerTask_vPrint(blockingTask);
 
@@ -299,7 +299,7 @@ void vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShoul
 	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
 	WorkerTask_vPrint(blockingTask);
 
-	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
 	if (retVal != 0) {
 		assert();
 		return;
@@ -317,7 +317,7 @@ void vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShoul
 	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
 	WorkerTask_vPrint(blockingTask);
 
-	retVal = PIP_SemaphoreTake(pSemaphore_C, blockingTask, taskList);
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_C, blockingTask, taskList);
 	if (retVal != 0) {
 		assert();
 		return;
@@ -336,7 +336,7 @@ void vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShoul
 	WorkerTask_vPrint(blockingTask);
 
 	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_B->uId - 1 + '0');
-	retVal = PIP_vSemaphoreGive(pSemaphore_C, blockingTask);
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_C, blockingTask);
 	WorkerTask_vListPrintPriority(pSemaphore_C->pBlockedTaskList);
 	WorkerTask_vPrint(blockingTask);
 
@@ -346,7 +346,7 @@ void vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShoul
 	}
 
 	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
-	retVal = PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_A, blockingTask);
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
 	WorkerTask_vPrint(blockingTask);
 

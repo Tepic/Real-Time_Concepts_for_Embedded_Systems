@@ -63,9 +63,17 @@
 // TODO
 
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
+
+/* TODO: output frequencey
+*/
+TickType_t currentTime = 0;
+const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
+
 /*-----------------------------------------------------------*/
 
 // TODO
+
+static gll_t* global_taskList;
 
 static void vUselessLoad(uint32_t ulCycles);
 static void prvTask1(void *pvParameters);
@@ -105,7 +113,6 @@ void main_exercise( void )
 }
 /*-----------------------------------------------------------*/
 
-
 static void vUselessLoad(uint32_t ulTimeUnits) {
 uint32_t ulUselessVariable = 0;
 
@@ -134,7 +141,8 @@ static void prvTask1(void *pvParameters)
 	
 	while (true) {
 		vUselessLoad(1);
-
+		PIP_BinarySemaphoreTake(pSemaphore_C, workerTask_1, global_taskList);
+		vTaskDelay(1000 * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 		
 }
@@ -154,7 +162,25 @@ static void prvTask2(void *pvParameters)
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 
 	while (true) {
+		vUselessLoad(1);
+#if DEBUG
+		eTaskState currentTaskState = eTaskGetState(workerTask_2->xHandle);
 
+		if (currentTaskState == eRunning)
+		{
+			vPrintStringLn("Task 2 is in Running State");
+		}
+#endif
+		PIP_BinarySemaphoreTake(pSemaphore_C, workerTask_2, global_taskList);
+#if DEBUG
+		currentTaskState = eTaskGetState(workerTask_2->xHandle);
+
+		if (currentTaskState == eBlocked)
+		{
+			vPrintStringLn("Task 2 is in Blocked State");
+		}
+#endif
+		vTaskDelay(2000 * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 }
 
@@ -206,7 +232,7 @@ void vInitialize(TaskFunction_t taskHandler_1,
 	WorkerTask_t* pTask_3,
 	WorkerTask_t* pTask_4) {
 
-	gll_t* taskList = gll_init();
+	global_taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
 
 	gll_t* semaphoreList_task_1 = gll_init();
@@ -235,11 +261,11 @@ void vInitialize(TaskFunction_t taskHandler_1,
 	pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
-	gll_pushBack(taskList, NULL);
-	gll_pushBack(taskList, pTask_1);
-	gll_pushBack(taskList, pTask_2);
-	gll_pushBack(taskList, pTask_3);
-	gll_pushBack(taskList, pTask_4);
+	gll_pushBack(global_taskList, NULL);
+	gll_pushBack(global_taskList, pTask_1);
+	gll_pushBack(global_taskList, pTask_2);
+	gll_pushBack(global_taskList, pTask_3);
+	gll_pushBack(global_taskList, pTask_4);
 
 	gll_pushBack(semaphoreList, pSemaphore_A);
 	gll_pushBack(semaphoreList, pSemaphore_B);

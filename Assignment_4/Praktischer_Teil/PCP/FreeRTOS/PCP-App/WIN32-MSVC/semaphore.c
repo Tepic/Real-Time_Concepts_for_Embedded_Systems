@@ -12,7 +12,9 @@ static int8_t PIP_iResetPriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToR
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t uId) {
 
 	Semaphore_t* pSemaphore = (Semaphore_t*)malloc(sizeof(Semaphore_t));
-	pSemaphore->semphHandle = xSemaphoreCreateBinary();
+
+	pSemaphore->semphHandle = xSemaphoreCreateCounting(1,  // uxMaxCount
+													   1); // uxInitialCount
 
 	if (pSemaphore->semphHandle == NULL) {
 #if DEBUG
@@ -62,12 +64,21 @@ void PIP_inheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList) {
 	
 }
 
-int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
+int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
 
 	if (pSemaphore == NULL || pTaskToAquireResource == NULL || pTaskList == NULL) {
 		
 #if DEBUG
-		vPrintStringLn("Error in function 'PIP_SemaphoreTake'. NULL Pointer");
+		vPrintStringLn("Error in function 'PIP_BinarySemaphoreTake'. NULL Pointer");
+#endif
+		return -1;
+	}
+
+	// Check if the task wanting to request the resource, has already obtained this resource
+	// This check needs to be done since we are using binary semaphore
+	if (pSemaphore->uAcquiredByTaskNum == pTaskToAquireResource->uTaskNumber) {
+#if DEBUG
+		vPrintString("Task "); vPrintInteger(pTaskToAquireResource->uTaskNumber); vPrintString(" has already locked by this binary semaphore. Cannot lock it twice!");
 #endif
 		return -1;
 	}
@@ -78,29 +89,37 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	// by a lower - priority task τj, then τi is blocked.τi is said to be blocked by the task
 	//	τj that holds the resource. Otherwise, τi enters the critical section zi, k.
 	if (isSemaphoreAcquired(pSemaphore)) {
-	
+#if DEBUG
+		//WorkerTask_vListPrintPriority(pSemaphore->pBlockedTaskList);
+#endif
+
 		// TODO: Sort list by ascending WorkerTask_t::uActivePriority
 		// Insert task to appropriate index inside the list of blocked tasks
 		// The blocked tasks ask are sorted in descending order w.r.t. priorities
 		// E.g. the blocked task with lowest priority should be at the end of the list
-		WorkerTask_vListPrintPriority(pSemaphore->pBlockedTaskList);
+		// Add task τi, which is blocked. τi is said to be blocked by the task τj that holds the resource.
 		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskToAquireResource);
+
 #if DEBUG
-		printf("%s%d%s%d%s\n", "Task ", pTaskToAquireResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId, " and task gets blocked");
+		printf("%s%d%s%d%s%d%s\n", "Task ", pTaskToAquireResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId, " and task ", pTaskToAquireResource->uTaskNumber," gets blocked!");
 #endif
 		// Transmit its active priority to the task that holds the semaphore
 		PIP_inheritPriority(pSemaphore, pTaskList);
 		
 		retVal = 1;
 #if DEBUG
-		return -2;
+		//return 2;
 #endif
 	}
 
-	// acquire the semaphore
+	// Try to acquire the semaphore
 	if (xSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
+
+		// The semaphore was not obtained
+		vTaskSuspend(pTaskToAquireResource->xHandle);
+		return 1;
 #if !DEBUG
-		return -1;
+		return 1;
 #endif
 	}
 
@@ -122,21 +141,23 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	return retVal;
 }
 
-int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
+int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
 
 	if (pSemaphore == NULL) {
 #if DEBUG
-		vPrintStringLn("Error in function 'PIP_vSemaphoreGive'. NULL Pointer");
+		vPrintStringLn("Error in function 'PIP_vBinarySemaphoreGive'. NULL Pointer");
 #endif
 		return -1;
 	}
 
 	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 	// Current task blocked on a semaphore is activated on unlock
+	// Check if the semaphore was obtained
 	if (xSemaphoreGive(pSemaphore->semphHandle) != pdTRUE) {
 #if DEBUG
-		vPrintStringLn("Error in function 'PIP_vSemaphoreGive'. NULL Pointer");
+		vPrintStringLn("Error in function 'PIP_vBinarySemaphoreGive'. NULL Pointer");
 #endif
+		// The semaphore was not obtained
 		return -1;
 	}
 
