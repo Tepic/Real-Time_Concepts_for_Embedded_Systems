@@ -12,7 +12,7 @@ struct workerTask
 
 };
 
-WorkerTask_t* WorkerTask_vCreate(uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime) {
+WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime) {
 
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
 
@@ -21,6 +21,8 @@ WorkerTask_t* WorkerTask_vCreate(uint8_t uTaskNumber, uint8_t nominalPriority, u
 
 	pWorkerTask->uTaskNumber = uTaskNumber;
 	pWorkerTask->uExecutionTime = uExecutionTime;
+
+	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, pWorkerTask->xHandle);
 	
 	return pWorkerTask;
 }

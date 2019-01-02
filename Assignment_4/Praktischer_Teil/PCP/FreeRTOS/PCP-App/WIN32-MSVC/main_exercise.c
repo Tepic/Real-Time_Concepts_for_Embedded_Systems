@@ -66,20 +66,26 @@
 // TODO
 
 static void vUselessLoad(uint32_t ulCycles);
+static void prvTask1(void *pvParameters);
+static void prvTask2(void *pvParameters);
+static void prvTask3(void *pvParameters);
+static void prvTask4(void *pvParameters);
 
 /*-----------------------------------------------------------*/
+
+
 
 void vTest() {
 	gll_t* taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
 
-	WorkerTask_t* pTask_1 = WorkerTask_vCreate(1, 5, 5);
-	WorkerTask_t* pTask_2 = WorkerTask_vCreate(2, 4, 7);
-	WorkerTask_t* pTask_3 = WorkerTask_vCreate(3, 3, 8);
-	WorkerTask_t* pTask_4 = WorkerTask_vCreate(4, 2, 9);
-	Semaphore_t* pSemaphore_A = Semaphore_vCreate(4, "A");
-	Semaphore_t* pSemaphore_B = Semaphore_vCreate(5, "B");
-	Semaphore_t* pSemaphore_C = Semaphore_vCreate(5, "C");
+	WorkerTask_t* pTask_1 = WorkerTask_Create(prvTask1, 1, 5, 5);
+	WorkerTask_t* pTask_2 = WorkerTask_Create(prvTask2, 2, 4, 7);
+	WorkerTask_t* pTask_3 = WorkerTask_Create(prvTask3, 3, 3, 8);
+	WorkerTask_t* pTask_4 = WorkerTask_Create(prvTask4, 4, 2, 9);
+	Semaphore_t* pSemaphore_A = Semaphore_Create(4, "A");
+	Semaphore_t* pSemaphore_B = Semaphore_Create(5, "B");
+	Semaphore_t* pSemaphore_C = Semaphore_Create(5, "C");
 
 	WorkerTask_vPrint(pTask_1);
 	WorkerTask_vPrint(pTask_2);
