@@ -291,3 +291,24 @@ static int8_t Semaphore_iGetIndex(WorkerTask_t* pTaskThatAquiredSemaphore, Semap
 
 	return -1;
 }
+
+Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId) {
+	if (pSemaphoreList == NULL || uId < 0) {
+#if DEBUG
+		vPrintStringLn("Error in function 'Semaphore_usList_GetSemaphoreById'. NULL Pointer or wrong uId");
+#endif
+		return NULL;
+	}
+
+	for (uint8_t uIndex = 0; uIndex < pSemaphoreList->size; ++uIndex) {
+	
+		Semaphore_t* pSemaphore = gll_get(pSemaphoreList, uIndex);
+		if (pSemaphore != NULL &&
+			pSemaphore->uId == uId) {
+
+			return pSemaphore;
+		}
+	}
+
+	return NULL;
+}

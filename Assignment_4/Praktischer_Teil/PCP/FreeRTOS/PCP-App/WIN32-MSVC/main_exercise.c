@@ -86,16 +86,19 @@ void vInitialize(TaskFunction_t taskHandler_1,
 void main_exercise( void )
 {
 	// TODO
-	WorkerTask_t* pTask_1;
-	WorkerTask_t* pTask_2;
-	WorkerTask_t* pTask_3;
-	WorkerTask_t* pTask_4;
+	WorkerTask_t* pTask_1 = NULL;
+	WorkerTask_t* pTask_2 = NULL;
+	WorkerTask_t* pTask_3 = NULL;
+	WorkerTask_t* pTask_4 = NULL;
 
 	vPrintStringLn("Starting the application...");
 #if DEBUG
-	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
+	//vTest(prvTask1, prvTask2, prvTask3, prvTask4);
+	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
+	vTaskStartScheduler();
 #elif !DEBUG
 	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
+	vTaskStartScheduler();
 #endif
 
 	for( ;; );
@@ -117,6 +120,18 @@ uint32_t ulUselessVariable = 0;
 
 static void prvTask1(void *pvParameters)
 {
+	if (pvParameters == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'prvTask1'. NULL Pointer");
+#endif
+		return;
+	}
+
+	WorkerTask_t* workerTask_1 = (WorkerTask_t*)pvParameters;
+
+	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 2
+	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_1->pUsedSemaphoreList, 3); // Semaphore C ID = 3
+	
 	while (true) {
 		vUselessLoad(1);
 
@@ -126,6 +141,18 @@ static void prvTask1(void *pvParameters)
 
 static void prvTask2(void *pvParameters)
 {
+	if (pvParameters == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'prvTask2'. NULL Pointer");
+#endif
+		return;
+	}
+
+	WorkerTask_t* workerTask_2 = (WorkerTask_t*)pvParameters;
+
+	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 1); // Semaphore B ID = 1
+	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 3); // Semaphore C ID = 3
+
 	while (true) {
 
 	}
@@ -133,6 +160,18 @@ static void prvTask2(void *pvParameters)
 
 static void prvTask3(void *pvParameters)
 {
+	if (pvParameters == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'prvTask3'. NULL Pointer");
+#endif
+		return;
+	}
+
+	WorkerTask_t* workerTask_3 = (WorkerTask_t*)pvParameters;
+
+	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_3->pUsedSemaphoreList, 1); // Semaphore A ID = 1
+	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_3->pUsedSemaphoreList, 2); // Semaphore B ID = 2
+
 	while (true) {
 
 	}
@@ -140,6 +179,18 @@ static void prvTask3(void *pvParameters)
 
 static void prvTask4(void *pvParameters)
 {
+	if (pvParameters == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'prvTask4'. NULL Pointer");
+#endif
+		return;
+	}
+
+	WorkerTask_t* workerTask_4 = (WorkerTask_t*)pvParameters;
+
+	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_4->pUsedSemaphoreList, 1); // Semaphore A ID = 1
+	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_4->pUsedSemaphoreList, 2); // Semaphore B ID = 2
+
 	while (true) {
 		vUselessLoad(2);
 		//usPrioritySemaphoreWait(pSemaphore_A, prvTask4);
