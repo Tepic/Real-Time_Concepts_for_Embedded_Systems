@@ -6,5 +6,6 @@
 
 #define DEBUG true
 #define TEST true
+#define IS_SCHEDULER_RUNNING false
 
 #endif DEBUG_H__

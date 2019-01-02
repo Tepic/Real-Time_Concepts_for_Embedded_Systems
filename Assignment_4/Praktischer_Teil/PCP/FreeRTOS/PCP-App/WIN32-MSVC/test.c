@@ -368,6 +368,192 @@ void vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShoul
 	testPassed();
 }
 
+void vTest_WhenSemaphoreIsReleasedThenReleasingTaskGetsMaximumPriorityOfAllBlockedTasks(gll_t* semaphoreList, gll_t* taskList) {
+
+	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
+	WorkerTask_t* pTask_2 = gll_get(taskList, 2);
+	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
+	WorkerTask_t* blockingTask = gll_get(taskList, 4);
+
+	Semaphore_t* pSemaphore_A = gll_get(semaphoreList, 0);
+	Semaphore_t* pSemaphore_B = gll_get(semaphoreList, 1);
+	Semaphore_t* pSemaphore_C = gll_get(semaphoreList, 2);
+
+	uint8_t blockingTaskPriorityOld = blockingTask->uActivePriority;
+
+	/* The Blocking Task locks Semaphore A */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+
+	int8_t retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* The Blocking Task locks Semaphore B */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  
+	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");
+
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_B, blockingTask, taskList);
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* The Task 3 tries to lock Semaphore A */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(pTask_3->uTaskNumber); vPrintString(" acquirying the semaphore ");
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	if (retVal == 0) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority == blockingTask->uNominalPriority ||
+		blockingTask->uActivePriority != pTask_3->uActivePriority) {
+		assert();
+		return;
+	}
+
+	/* The Task 3 tries to lock Semaphore B */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(pTask_3->uTaskNumber); vPrintString(" acquirying the semaphore ");
+	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_B, pTask_3, taskList);
+	if (retVal == 0) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority == blockingTask->uNominalPriority ||
+		blockingTask->uActivePriority != pTask_3->uActivePriority) {
+		assert();
+		return;
+	}
+
+	/* The Task 2 tries to lock Semaphore A */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(pTask_2->uTaskNumber); vPrintString(" acquirying the semaphore ");
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_A, pTask_2, taskList);
+	if (retVal == 0) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority == blockingTask->uNominalPriority ||
+		blockingTask->uActivePriority != pTask_2->uActivePriority) {
+		assert();
+		return;
+	}
+
+	/* The Task 1 tries to lock Semaphore B */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(pTask_1->uTaskNumber); vPrintString(" acquirying the semaphore ");
+	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_B, pTask_1, taskList);
+	if (retVal == 0) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority == blockingTask->uNominalPriority ||
+		blockingTask->uActivePriority != pTask_1->uActivePriority) {
+		assert();
+		return;
+	}
+
+	uint8_t size_A = pSemaphore_A->pBlockedTaskList->size;
+	uint8_t size_B = pSemaphore_B->pBlockedTaskList->size;
+
+	/* The Blocking Task unlocks Semaphore B */
+	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");
+	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_B, blockingTask);
+	WorkerTask_vListPrintPriority(pSemaphore_B->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* The Task 3 unlocks Semaphore B */
+	vPrintString("The BLOCKING Task #"); vPrintInteger(pTask_3->uTaskNumber); vPrintString(" releasing the semaphore ");
+	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_B, pTask_3);
+	WorkerTask_vListPrintPriority(pSemaphore_B->pBlockedTaskList);
+
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* The Blocking Task unlocks Semaphore A */
+	blockingTaskPriorityOld = blockingTask->uActivePriority;
+
+	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_A, blockingTask);
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* The Task 2 unlocks Semaphore A */
+	blockingTaskPriorityOld = blockingTask->uActivePriority;
+
+	vPrintString("The BLOCKING Task #"); vPrintInteger(pTask_2->uTaskNumber); vPrintString(" releasing the semaphore ");
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_A, pTask_2);
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	/* The Task 3 unlocks Semaphore A */
+	blockingTaskPriorityOld = blockingTask->uActivePriority;
+
+	vPrintString("The BLOCKING Task #"); vPrintInteger(pTask_3->uTaskNumber); vPrintString(" releasing the semaphore ");
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore_A, pTask_3);
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority != blockingTaskPriorityOld) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority != blockingTask->uNominalPriority) {
+		assert();
+		return;
+	}
+
+	if (pSemaphore_A->pBlockedTaskList->size != 0) {
+		assert();
+		return;
+	}
+
+	if (pSemaphore_B->pBlockedTaskList->size != 0) {
+		assert();
+		return;
+	}
+
+	testPassed();
+}
 
 
 void vTast_PrintList(gll_t* integerList) {
@@ -488,7 +674,8 @@ void vTest(TaskFunction_t taskHandler_1,
 	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
 	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseTheSemaphore(pSemaphore_A, taskList);
 	//vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriority(semaphoreList, taskList);
-	vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShouldBeBlocked(semaphoreList, taskList);
+	//vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShouldBeBlocked(semaphoreList, taskList);
+	vTest_WhenSemaphoreIsReleasedThenReleasingTaskGetsMaximumPriorityOfAllBlockedTasks(semaphoreList, taskList);
 	//vTast_TestAddList();
 
 	WorkerTask_vDestroy(pTask_1);
