@@ -36,5 +36,9 @@ static void PIP_inheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList);
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t uId);
 void  Semaphore_vDestroy(Semaphore_t* pSemaphore);
 void Semaphore_vPrint(Semaphore_t*);
+// Functions for ICPP
+// TODO: Implement those function
+uint8_t usPrioritySemaphoreWait();
+uint8_t usPrioritySemaphoreSignal();
 
 #endif //end SEMAPHORE_H_

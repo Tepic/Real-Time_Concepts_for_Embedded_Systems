@@ -72,6 +72,7 @@ static void prvTask1(void *pvParameters);
 static void prvTask2(void *pvParameters);
 static void prvTask3(void *pvParameters);
 static void prvTask4(void *pvParameters);
+static void vInitialize(TaskFunction_t taskHandler_1, TaskFunction_t taskHandler_2, TaskFunction_t taskHandler_3, TaskFunction_t taskHandler_4);
 
 /*-----------------------------------------------------------*/
 
@@ -97,6 +98,8 @@ void main_exercise( void )
 	vPrintStringLn("Starting the application...");
 #if DEBUG
 	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
+#elif !DEBUG
+	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4);
 #endif
 
 	for( ;; );
@@ -118,21 +121,78 @@ uint32_t ulUselessVariable = 0;
 
 static void prvTask1(void *pvParameters)
 {
-	// TODO
+	while (true) {
+		vUselessLoad(1);
+
+	}
 		
 }
 
 static void prvTask2(void *pvParameters)
 {
-	// TODO
+	while (true) {
+
+	}
 }
 
 static void prvTask3(void *pvParameters)
 {
-	// TODO
+	while (true) {
+
+	}
 }
 
 static void prvTask4(void *pvParameters)
 {
-	// TODO
+	while (true) {
+		vUselessLoad(2);
+		//usPrioritySemaphoreWait(pSemaphore_A, prvTask4);
+	}
 }
+
+void vInitialize(TaskFunction_t taskHandler_1,
+	TaskFunction_t taskHandler_2,
+	TaskFunction_t taskHandler_3,
+	TaskFunction_t taskHandler_4) {
+
+	gll_t* taskList = gll_init();
+	gll_t* semaphoreList = gll_init();
+
+	gll_t* semaphoreList_task_1 = gll_init();
+	gll_t* semaphoreList_task_2 = gll_init();
+	gll_t* semaphoreList_task_3 = gll_init();
+	gll_t* semaphoreList_task_4 = gll_init();
+
+	Semaphore_t* pSemaphore_A = Semaphore_Create(4, 1);
+	Semaphore_t* pSemaphore_B = Semaphore_Create(5, 2);
+	Semaphore_t* pSemaphore_C = Semaphore_Create(5, 3);
+
+	gll_push(semaphoreList_task_1, pSemaphore_B);
+	gll_push(semaphoreList_task_1, pSemaphore_C);
+	WorkerTask_t* pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 10, 10, semaphoreList_task_1);
+
+	gll_push(semaphoreList_task_2, pSemaphore_A);
+	gll_push(semaphoreList_task_2, pSemaphore_C);
+	WorkerTask_t* pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 3, 10, semaphoreList_task_2);
+
+	gll_push(semaphoreList_task_3, pSemaphore_A);
+	gll_push(semaphoreList_task_3, pSemaphore_B);
+	WorkerTask_t* pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 5, 10, semaphoreList_task_3);
+
+	gll_push(semaphoreList_task_4, pSemaphore_A);
+	gll_push(semaphoreList_task_4, pSemaphore_B);
+	WorkerTask_t* pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
+
+	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
+	gll_pushBack(taskList, NULL);
+	gll_pushBack(taskList, pTask_1);
+	gll_pushBack(taskList, pTask_2);
+	gll_pushBack(taskList, pTask_3);
+	gll_pushBack(taskList, pTask_4);
+
+	gll_pushBack(semaphoreList, pSemaphore_A);
+	gll_pushBack(semaphoreList, pSemaphore_B);
+	gll_pushBack(semaphoreList, pSemaphore_C);
+
+}
+
