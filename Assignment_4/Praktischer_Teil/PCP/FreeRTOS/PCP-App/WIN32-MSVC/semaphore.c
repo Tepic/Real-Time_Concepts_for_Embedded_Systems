@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "semaphore.h"
 #include "acquiredResource.h"
 #include "debug.h"
@@ -74,6 +74,9 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 
 	int8_t retVal = 0;
 
+	// When task τi tries to enter a critical section zi,k and resource Rk is already held
+	// by a lower - priority task τj, then τi is blocked.τi is said to be blocked by the task
+	//	τj that holds the resource. Otherwise, τi enters the critical section zi, k.
 	if (isSemaphoreAcquired(pSemaphore)) {
 	
 		// TODO: Sort list by ascending WorkerTask_t::uActivePriority
@@ -136,6 +139,12 @@ int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseR
 #endif
 		return -1;
 	}
+
+	//TODO: When τj exits a critical section, it unlocks the semaphore, and the highest-priority
+	// task blocked on that semaphore, if any, is awakened.Moreover, the active priority
+	//	of τj is updated as follows : if no other tasks are blocked by τj, pj is set to its
+	//	nominal priority Pj; otherwise it is set to the highest priority of the tasks blocked
+	//	by τj, according to Equation
 
 	// The task that releases the semaphore can inherit priority from higher priority tasks
 	// We use AcquiredResource_t to return tasks' priority to the one when it acquired the resource (semaphore)

@@ -26,6 +26,7 @@ typedef struct workerTask
 	uint8_t uReleaseTime;
 	uint8_t uPeriod;
 	gll_t* pAcquiredResourceList;
+	gll_t* pUsedSemaphoreList;
 
 } WorkerTask_t;
 

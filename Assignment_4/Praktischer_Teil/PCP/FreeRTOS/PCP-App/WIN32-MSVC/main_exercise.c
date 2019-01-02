@@ -72,34 +72,30 @@ static void prvTask1(void *pvParameters);
 static void prvTask2(void *pvParameters);
 static void prvTask3(void *pvParameters);
 static void prvTask4(void *pvParameters);
-static void vInitialize(TaskFunction_t taskHandler_1, TaskFunction_t taskHandler_2, TaskFunction_t taskHandler_3, TaskFunction_t taskHandler_4);
+void vInitialize(TaskFunction_t taskHandler_1,
+	TaskFunction_t taskHandler_2,
+	TaskFunction_t taskHandler_3,
+	TaskFunction_t taskHandler_4,
+	WorkerTask_t* pTask_1,
+	WorkerTask_t* pTask_2,
+	WorkerTask_t* pTask_3,
+	WorkerTask_t* pTask_4);
 
 /*-----------------------------------------------------------*/
 
 void main_exercise( void )
 {
 	// TODO
-	SemaphoreHandle_t xSemaphore_A;
-	SemaphoreHandle_t xSemaphore_B;
-	SemaphoreHandle_t xSemaphore_C;
-
-	// Should we create binary of counting semaphore?
-	vSemaphoreCreateBinary(xSemaphore_A);
-	vSemaphoreCreateBinary(xSemaphore_B);
-	vSemaphoreCreateBinary(xSemaphore_C);
-
-	if (xSemaphore_A == NULL || xSemaphore_B == NULL || xSemaphore_C == NULL)
-	{
-		vPrintString("The semaphore was created unsuccessfully.");
-		vPrintString("Exiting the application.");
-		return;
-	}
+	WorkerTask_t* pTask_1;
+	WorkerTask_t* pTask_2;
+	WorkerTask_t* pTask_3;
+	WorkerTask_t* pTask_4;
 
 	vPrintStringLn("Starting the application...");
 #if DEBUG
 	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
 #elif !DEBUG
-	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4);
+	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
 #endif
 
 	for( ;; );
@@ -153,7 +149,11 @@ static void prvTask4(void *pvParameters)
 void vInitialize(TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
 	TaskFunction_t taskHandler_3,
-	TaskFunction_t taskHandler_4) {
+	TaskFunction_t taskHandler_4, 
+	WorkerTask_t* pTask_1,
+	WorkerTask_t* pTask_2,
+	WorkerTask_t* pTask_3,
+	WorkerTask_t* pTask_4) {
 
 	gll_t* taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
@@ -169,19 +169,19 @@ void vInitialize(TaskFunction_t taskHandler_1,
 
 	gll_push(semaphoreList_task_1, pSemaphore_B);
 	gll_push(semaphoreList_task_1, pSemaphore_C);
-	WorkerTask_t* pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 10, 10, semaphoreList_task_1);
+	pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 10, 10, semaphoreList_task_1);
 
 	gll_push(semaphoreList_task_2, pSemaphore_A);
 	gll_push(semaphoreList_task_2, pSemaphore_C);
-	WorkerTask_t* pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 3, 10, semaphoreList_task_2);
+	pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 3, 10, semaphoreList_task_2);
 
 	gll_push(semaphoreList_task_3, pSemaphore_A);
 	gll_push(semaphoreList_task_3, pSemaphore_B);
-	WorkerTask_t* pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 5, 10, semaphoreList_task_3);
+	pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 5, 10, semaphoreList_task_3);
 
 	gll_push(semaphoreList_task_4, pSemaphore_A);
 	gll_push(semaphoreList_task_4, pSemaphore_B);
-	WorkerTask_t* pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
+	pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
 	gll_pushBack(taskList, NULL);

@@ -19,6 +19,8 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
 
+	pWorkerTask->pUsedSemaphoreList = pUsedSemaphoreList;
+
 	pWorkerTask->uNominalPriority = nominalPriority;
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
 
