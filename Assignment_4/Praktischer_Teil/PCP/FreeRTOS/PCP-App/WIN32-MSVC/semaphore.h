@@ -19,7 +19,15 @@
 #define SEMAPHORE_PRIORITY_CEILING_NONE 0
 
 /* Variable declarations */
-typedef struct semaphore Semaphore_t;
+typedef struct  semaphore
+{
+	SemaphoreHandle_t semphHandle;
+	uint8_t* uId;
+	uint8_t uPriorityCeiling;
+	uint8_t uAcquiredByTaskNum;
+	gll_t* pBlockedTaskList;
+}Semaphore_t;
+
 
 /* Function declarations */
 int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList);

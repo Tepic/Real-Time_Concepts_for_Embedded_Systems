@@ -2,16 +2,6 @@
 #include "print.h"
 
 /* Make workerTask fields private this way */
-struct workerTask 
-{
-	TaskHandle_t xHandle;
-	uint8_t uTaskNumber;
-	uint8_t uNominalPriority;
-	uint8_t uActivePriority;
-	uint32_t uExecutionTime;
-
-};
-
 WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime) {
 
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
@@ -77,21 +67,55 @@ uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);
 }
 
-void WorkerTask_vListAddDescendingPriority(gll_t* pTaskList, WorkerTask_t* pWorkerTask) {
-	if (pWorkerTask == NULL || pTaskList == NULL) {
+/*
+void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
+	if (pTaskToInsertIntoTheList == NULL || pTaskList == NULL) {
 		vPrintStringLn("Error in function 'WorkerTask_vListAddDescendingPriority'. NULL Pointer");
 		return;
 	}
 
 	// If no elements in the list add it to the front of the list
 	if (pTaskList->size == 0) {
-		gll_push(pTaskList, pWorkerTask);
+		gll_push(pTaskList, pTaskToInsertIntoTheList);
+		return;
 	}
 
 	uint8_t maxPriority = 0;
+	WorkerTask_t* pBlockedTask;
+	for (uint8_t index = 0; index < pTaskList->size; ++index) {
+		pBlockedTask = (WorkerTask_t*) gll_get(pTaskList, index);
+		if (pTaskToInsertIntoTheList->uActivePriority >= pBlockedTask->uActivePriority) {
+			gll_add(pTaskToInsertIntoTheList, pBlockedTask, index + 1);
+			return;
+		}
+	}
+
+	// Add task to end of list since it has lowest priority (list is sorted in descending order w.r.t. priorities
+	gll_pushBack(pTaskList, pTaskToInsertIntoTheList);
+	
+}*/
+
+
+void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
+
+	if (pTaskList->size == 0) {
+		gll_push(pTaskList, pTaskToInsertIntoTheList);
+		return;
+	}
+
 	for (uint8_t index = 0; index < pTaskList->size; ++index) {
 
+		WorkerTask_t* pListTask = (WorkerTask_t*) gll_get(pTaskList, index);
+		uint8_t uListData = pListTask->uActivePriority;
+		uint8_t uData = pTaskToInsertIntoTheList->uActivePriority;
+
+		if (uData >= uListData) {
+			gll_add(pTaskList, pTaskToInsertIntoTheList, index);
+			return;
+		}
 	}
+
+	gll_pushBack(pTaskList, pTaskToInsertIntoTheList);
 }
 
 void WorkerTask_vPrint(WorkerTask_t* task) {
@@ -104,4 +128,21 @@ void WorkerTask_vPrint(WorkerTask_t* task) {
 	vPrintString(", uNominalPriority: "); vPrintInteger(task->uNominalPriority);
 	vPrintString(", uActivePriority: "); vPrintInteger(task->uActivePriority);
 	vPrintString(", uExecutionTime: "); vPrintInteger(task->uExecutionTime); vPrintStringLn("]");
+}
+
+void WorkerTask_vListPrintPriority(gll_t* pTaskList) {
+	if (pTaskList == NULL || pTaskList == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vListPrintPriority'. NULL Pointer");
+		return;
+	}
+
+	if (pTaskList->size == 0) {
+		vPrintStringLn("Function 'WorkerTask_vListPrintPriority' empty list");
+	}
+
+	WorkerTask_t* pBlockedTask; 
+	for (uint8_t index = 0; index < pTaskList->size; ++index) {
+		pBlockedTask = gll_get(pTaskList, index);
+		WorkerTask_vPrint(pBlockedTask);
+	}
 }

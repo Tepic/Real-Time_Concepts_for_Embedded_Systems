@@ -1,16 +1,6 @@
 #pragma once
 #include "semaphore.h"
 
-// Make Semaphore_t private
-struct semaphore
-{
-	SemaphoreHandle_t semphHandle;
-	uint8_t* uId;
-	uint8_t uPriorityCeiling;
-	uint8_t uAcquiredByTaskNum;
-	gll_t* pBlockedTaskList;
-};
-
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t* uId) {
 
 	Semaphore_t* pSemaphore = (Semaphore_t*)malloc(sizeof(Semaphore_t));
@@ -75,16 +65,21 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 		PIP_inheritPriority(pSemaphore, pTaskToAquireResource, pTaskList);
 
 		// TODO: Sort list by ascending WorkerTask_t::uActivePriority
-		// Insert task to appropriate index
-		gll_add(pSemaphore->pBlockedTaskList, pTaskToAquireResource, index);
+		// Insert task to appropriate index inside the list of blocked tasks
+		// The blocked tasks ask are sorted in descending order w.r.t. priorities
+		// E.g. the blocked task with lowest priority should be at the end of the list
+		WorkerTask_vListPrintPriority(pSemaphore->pBlockedTaskList);
+		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskToAquireResource);
 
 		printf("%s%d%s%c%s\n", "Task ", WorkerTask_vGetTaskNumber(pTaskToAquireResource), " failed to acquire semaphore ", pSemaphore->uId, "and task gets blocked");
 		retVal = 1;
+		return;
 	}
 
 	// acquire the semaphore
 	if (xSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
-		return -1;
+		// TODO: Uncomment
+		//return -1;
 	}
 
 	// Since lock is successful, update semaphore's info; semaphore locked by the current task
@@ -110,7 +105,7 @@ static uint8_t getPriorityNum_of_HighestPriorityBlockedTask(Semaphore_t* pSemaph
 		blocked_task_active_priority = WorkerTask_uGetActivePriority(pBlockedTask);
 
 		if (blocked_task_active_priority >  max_priority_task_num) {
-			max_priority_task_num
+			//max_priority_task_num
 		}
 	}
 }
@@ -141,7 +136,7 @@ int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseR
 	   we need to have a list of blocked tasks, only if the list has 1 element we actually reset to nominal priority
 	   else we set tasks priority to 'the highest priority of blocked tasks' */
 	
-	vPrintString("Resource "); vPrintString(pSemaphoreHandle->uId); vPrintStringLn(" gets released");
+	vPrintString("Resource "); vPrintString(pSemaphore->uId); vPrintStringLn(" gets released");
 	return 0;
 }
 

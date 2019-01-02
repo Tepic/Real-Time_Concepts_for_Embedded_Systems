@@ -13,7 +13,15 @@
 #include "gll.h"
 
 /* variable declarations */
-typedef struct workerTask WorkerTask_t;
+typedef struct workerTask
+{
+	TaskHandle_t xHandle;
+	uint8_t uTaskNumber;
+	uint8_t uNominalPriority;
+	uint8_t uActivePriority;
+	uint32_t uExecutionTime;
+
+} WorkerTask_t;
 
 /* Function declarations */
 WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime);
@@ -26,7 +34,7 @@ uint8_t WorkerTask_uGetNominalPriority(WorkerTask_t* pWorkerTask);
 TaskHandle_t WorkerTask_vGetHandle(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 uint8_t WorkerTask_vSizeOf();
-void WorkerTask_vListAddDescendingPriority(gll_t* pTaskList, WorkerTask_t* pWorkerTask);
-
+void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pWorkerTask);
+void WorkerTask_vListPrintPriority(gll_t* pTaskList);
 
 #endif //end TASK_H_
