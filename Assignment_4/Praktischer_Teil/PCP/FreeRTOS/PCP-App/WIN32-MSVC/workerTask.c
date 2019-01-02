@@ -52,11 +52,18 @@ void WorkerTask_vSetActivePriority(WorkerTask_t* pWorkerTask, uint8_t uActivePri
 	pWorkerTask->uActivePriority = uActivePriority;
 }
 
-uint8_t WorkerTask_vGetActivePriority(WorkerTask_t* pWorkerTask) {
+uint8_t WorkerTask_uGetActivePriority(WorkerTask_t* pWorkerTask) {
 	if (pWorkerTask == NULL) {
-		vPrintStringLn("Error in function 'WorkerTask_vGetActivePriority'. NULL Pointer");
+		vPrintStringLn("Error in function 'WorkerTask_uGetActivePriority'. NULL Pointer");
 	}
 	return pWorkerTask->uActivePriority;
+}
+
+uint8_t WorkerTask_uGetNominalPriority(WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_uGetNominalPriority'. NULL Pointer");
+	}
+	return pWorkerTask->uNominalPriority;
 }
 
 void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {

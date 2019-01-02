@@ -74,11 +74,11 @@ static void prvTask4(void *pvParameters);
 /*-----------------------------------------------------------*/
 
 void assert() {
-	vPrintStringLn("Error while testing");
+	vPrintStringLn("Test error asserted");
 }
 
 void testPassed() {
-	vPrintStringLn("Tesst passed");
+	vPrintStringLn("Test passed");
 }
 
 
@@ -93,6 +93,57 @@ void vTest_SemaphoreIsNotAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_
 	testPassed();
 }
 
+void vTest_SemaphoreIsAlreadyAquired(Semaphore_t* pSemaphore_A, WorkerTask_t* pTask_1, WorkerTask_t* pTask_2, gll_t* taskList) {
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	uint8_t uOld_Task_2_active_priority = WorkerTask_uGetActivePriority(pTask_2);
+	retVal = PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+
+	// Should be retVal == 0
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	if (WorkerTask_uGetActivePriority(pTask_1) != WorkerTask_uGetActivePriority(pTask_2)) {
+		assert();
+		return;
+	}
+
+	if (uOld_Task_2_active_priority == WorkerTask_uGetActivePriority(pTask_2)) {
+		assert();
+		return;
+	}
+
+	testPassed();
+}
+
+void vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(Semaphore_t* pSemaphore_A, WorkerTask_t* blockedTask, WorkerTask_t* blockingTask, gll_t* taskList) {
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	retVal = PIP_SemaphoreTake(pSemaphore_A, blockedTask, taskList);
+
+	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	if ( WorkerTask_uGetActivePriority(blockingTask) != WorkerTask_uGetNominalPriority(blockingTask) ){
+		assert();
+		return;
+	}
+
+	testPassed();
+}
+
+
+
 void vTest() {
 	gll_t* taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
@@ -105,6 +156,8 @@ void vTest() {
 	Semaphore_t* pSemaphore_B = Semaphore_Create(5, "B");
 	Semaphore_t* pSemaphore_C = Semaphore_Create(5, "C");
 
+	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
+	gll_pushBack(taskList, NULL);
 	gll_pushBack(taskList, pTask_1);
 	gll_pushBack(taskList, pTask_2);
 	gll_pushBack(taskList, pTask_3);
@@ -114,8 +167,11 @@ void vTest() {
 	gll_pushBack(semaphoreList, pSemaphore_B);
 	gll_pushBack(semaphoreList, pSemaphore_C);
 
-	vTest_SemaphoreIsNotAquired(pSemaphore_A, pTask_1, taskList);
-	
+	/* Tests */
+	//vTest_SemaphoreIsNotAquired(pSemaphore_A, pTask_1, taskList);
+	//vTest_SemaphoreIsAlreadyAquired(pSemaphore_A, pTask_1, pTask_2, taskList);
+	vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(pSemaphore_A, pTask_1, pTask_2, taskList);
+
 	WorkerTask_vDestroy(pTask_1);
 	WorkerTask_vDestroy(pTask_2);
 	WorkerTask_vDestroy(pTask_3);
