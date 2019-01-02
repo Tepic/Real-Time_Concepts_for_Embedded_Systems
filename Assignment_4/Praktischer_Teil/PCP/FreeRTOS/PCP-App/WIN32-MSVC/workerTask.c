@@ -77,6 +77,23 @@ uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);
 }
 
+void WorkerTask_vListAddDescendingPriority(gll_t* pTaskList, WorkerTask_t* pWorkerTask) {
+	if (pWorkerTask == NULL || pTaskList == NULL) {
+		vPrintStringLn("Error in function 'WorkerTask_vListAddDescendingPriority'. NULL Pointer");
+		return;
+	}
+
+	// If no elements in the list add it to the front of the list
+	if (pTaskList->size == 0) {
+		gll_push(pTaskList, pWorkerTask);
+	}
+
+	uint8_t maxPriority = 0;
+	for (uint8_t index = 0; index < pTaskList->size; ++index) {
+
+	}
+}
+
 void WorkerTask_vPrint(WorkerTask_t* task) {
 	if (task == NULL) {
 		vPrintStringLn("Error in function 'WorkerTask_vPrint'. NULL Pointer");

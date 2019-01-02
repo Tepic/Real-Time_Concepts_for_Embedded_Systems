@@ -10,6 +10,7 @@
 
 /* Other includes */
 #include "bool_t.h"
+#include "gll.h"
 
 /* variable declarations */
 typedef struct workerTask WorkerTask_t;
@@ -25,5 +26,7 @@ uint8_t WorkerTask_uGetNominalPriority(WorkerTask_t* pWorkerTask);
 TaskHandle_t WorkerTask_vGetHandle(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 uint8_t WorkerTask_vSizeOf();
+void WorkerTask_vListAddDescendingPriority(gll_t* pTaskList, WorkerTask_t* pWorkerTask);
+
 
 #endif //end TASK_H_

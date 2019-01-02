@@ -8,7 +8,7 @@ struct semaphore
 	uint8_t* uId;
 	uint8_t uPriorityCeiling;
 	uint8_t uAcquiredByTaskNum;
-
+	gll_t* pBlockedTaskList;
 };
 
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t* uId) {
@@ -17,6 +17,11 @@ Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t* uId) {
 	pSemaphore->semphHandle = xSemaphoreCreateBinary();
 
 	if (pSemaphore->semphHandle == NULL) {
+		return NULL;
+	}
+
+	pSemaphore->pBlockedTaskList = gll_init();
+	if (pSemaphore->pBlockedTaskList == NULL) {
 		return NULL;
 	}
 
@@ -68,6 +73,11 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	if (isSemaphoreAcquired(pSemaphore)) {
 		// Transmit its active priority to the task that holds the semaphore
 		PIP_inheritPriority(pSemaphore, pTaskToAquireResource, pTaskList);
+
+		// TODO: Sort list by ascending WorkerTask_t::uActivePriority
+		// Insert task to appropriate index
+		gll_add(pSemaphore->pBlockedTaskList, pTaskToAquireResource, index);
+
 		printf("%s%d%s%c%s\n", "Task ", WorkerTask_vGetTaskNumber(pTaskToAquireResource), " failed to acquire semaphore ", pSemaphore->uId, "and task gets blocked");
 		retVal = 1;
 	}
@@ -88,20 +98,45 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	return 0;
 }
 
-int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource, gll_t* pBlockedTaskList) {
+static uint8_t getPriorityNum_of_HighestPriorityBlockedTask(Semaphore_t* pSemaphoreHandle) {
+	WorkerTask_t* pBlockedTask;
+	uint8_t max_priority_task_num = 0;
+	uint8_t blocked_task_active_priority;
+	for (uint8_t index = 0; index < pSemaphoreHandle->pBlockedTaskList->size; index++) {
+		/* TODO: find the highest priority of all blocked tasks on semaphore pSemaphoreHandle
+		Maybe each semaphore should have a list of blocked tasks on it*/
+		// Find task which has highest priority in pSemaphoreHandle->pBlockedTaskList
+		pBlockedTask = (WorkerTask_t*)gll_get(pSemaphoreHandle->pBlockedTaskList, index);
+		blocked_task_active_priority = WorkerTask_uGetActivePriority(pBlockedTask);
 
-	if (pSemaphoreHandle == NULL) {
+		if (blocked_task_active_priority >  max_priority_task_num) {
+			max_priority_task_num
+		}
+	}
+}
+
+int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
+
+	if (pSemaphore == NULL) {
 		vPrintStringLn("Error in function 'PIP_vSemaphoreGive'. NULL Pointer");
 	}
 	
-	pSemaphoreHandle->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 	// Current task blocked on a semaphore is activated on unlock
-	if (xSemaphoreGive(pSemaphoreHandle->semphHandle) != pdTRUE) {
+	if (xSemaphoreGive(pSemaphore->semphHandle) != pdTRUE) {
 		return -1;
 	}
 
 	// unlocks the semaphore set it to the nominal priority or
-	WorkerTask_vResetActivePriority(pTaskToReleaseResource);
+	if (pSemaphore->pBlockedTaskList->size == 0) {
+		WorkerTask_vResetActivePriority(pTaskToReleaseResource);
+	}
+	//TODO: //gll_remove(pBlockedTaskList, indexof_pBlockedTaskList);
+	else {
+		//TODO: sort pBlockedTaskList in PIP_SemaphoreTake so you do not have to search through it here
+		//getPriorityNum_of_HighestPriorityBlockedTask(pSemaphoreHandle);
+	}
+	
 	/* TODO: Set it to the highest priority of blocked tasks 
 	   we need to have a list of blocked tasks, only if the list has 1 element we actually reset to nominal priority
 	   else we set tasks priority to 'the highest priority of blocked tasks' */
