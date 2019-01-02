@@ -37,6 +37,6 @@ void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pWorkerTask);
 void WorkerTask_vListPrintPriority(gll_t* pTaskList);
-void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask);
+void WorkerTask_vResetActivePriorityToNominalPriority(WorkerTask_t* pWorkerTask);
 
 #endif //end TASK_H_

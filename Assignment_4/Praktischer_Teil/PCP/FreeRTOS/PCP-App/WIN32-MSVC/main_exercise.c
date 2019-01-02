@@ -100,10 +100,12 @@ void main_exercise( void )
 	WorkerTask_t* pTask_4 = NULL;
 
 	vPrintStringLn("Starting the application...");
-#if DEBUG
-	//vTest(prvTask1, prvTask2, prvTask3, prvTask4);
-	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
-	vTaskStartScheduler();
+
+#if TEST
+	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
+#elif DEBUG
+	//vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
+	//vTaskStartScheduler();
 #elif !DEBUG
 	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
 	vTaskStartScheduler();

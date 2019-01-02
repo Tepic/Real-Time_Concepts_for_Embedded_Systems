@@ -5,5 +5,6 @@
 #include "bool_t.h"
 
 #define DEBUG true
+#define TEST true
 
 #endif DEBUG_H__

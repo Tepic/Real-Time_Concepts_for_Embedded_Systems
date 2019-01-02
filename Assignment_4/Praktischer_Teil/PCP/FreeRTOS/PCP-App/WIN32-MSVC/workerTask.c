@@ -99,7 +99,7 @@ void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask
 }
 
 /* Set priority of the task to the nominal value */
-void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask) {
+void WorkerTask_vResetActivePriorityToNominalPriority(WorkerTask_t* pWorkerTask) {
 	if (pWorkerTask == NULL) {
 		vPrintStringLn("Error in function 'WorkerTask_vResetActivePriority'. NULL Pointer");
 	}
