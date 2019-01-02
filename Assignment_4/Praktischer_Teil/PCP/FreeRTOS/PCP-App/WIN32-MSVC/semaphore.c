@@ -6,6 +6,8 @@
 static int8_t Semaphore_iGetIndex(WorkerTask_t* pTaskThatAquiredSemaphore, Semaphore_t* pSemaphoreInUse);
 static bool_t isSemaphoreAcquired(Semaphore_t*);
 static void transmitTasksActivePriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, gll_t* pTaskList);
+static int8_t PIP_iSetPriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource);
+static int8_t PIP_iResetPriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource);
 
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t uId) {
 
@@ -70,7 +72,7 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 		return -1;
 	}
 
-	int8_t retVal;
+	int8_t retVal = 0;
 
 	if (isSemaphoreAcquired(pSemaphore)) {
 	
@@ -102,17 +104,10 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	// Since lock is successful, update semaphore's info; semaphore locked by the current task
 	pSemaphore->uAcquiredByTaskNum = pTaskToAquireResource->uTaskNumber;
 	
-	//pTaskToAquireResource->uPriorityWhenItAcquiredResource = pTaskToAquireResource->uActivePriority;
-	
-	// TODO:
-	//pTaskToAquireResource->pAcquiredResourceList 
-	retVal = Semaphore_iGetIndex(pTaskToAquireResource, pSemaphore);
-	if (retVal < 1){
-#if DEBUG
-		vPrintStringLn("Error in function 'PIP_SemaphoreTake'. NULL Semaphore_iGetIndex returned non-positive value");
-#endif
-		return -1;
-	}
+	// Store current active priority of the task that locked the semaphore,
+	// This information has to be stored, because this task can inherit priority from higher priority tasks
+	// We use AcquiredResource_t once we unlock the semaphore to return tasks' priority to the one when it acquired the resource (semaphore)
+	retVal = PIP_iSetPriority(pSemaphore, pTaskToAquireResource);
 
 	// TODO: change priority of the task for ICPP
 #if DEBUG
@@ -121,7 +116,7 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 #endif
 	//TODO: ICCP 
 	// vPrintString("Task <x> acquired resource <y> and changed its priority from <i> to <j>.");
-	return 0;
+	return retVal;
 }
 
 int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
@@ -142,28 +137,67 @@ int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseR
 		return -1;
 	}
 
-	// TODO: Check if you actually need to do this step instead of the one below
-	// Return the priority of the task to its pwriority at the time when it acquired the resource
-	//pTaskToReleaseResource->uActivePriority = pTaskToReleaseResource->uPriorityWhenItAcquiredResource;
-	//pTaskToReleaseResource->uPriorityWhenItAcquiredResource = WORKER_TASK_NONE_PRIORITY;
-
-	// Priority of the task that unlocks the semaphore 
-	// is set to its nominal priority OR
-	// to the highest priority of blocked tasks
-	if (pSemaphore->pBlockedTaskList->size <= 0) {
-		WorkerTask_vResetActivePriority(pTaskToReleaseResource);
-	}
-	else {
-		WorkerTask_t* pTaskWithHighestPriorityOfBlockedTasks = gll_get(pSemaphore->pBlockedTaskList, 0);
-		pTaskToReleaseResource->uActivePriority = pTaskWithHighestPriorityOfBlockedTasks->uActivePriority;
-	}
+	// The task that releases the semaphore can inherit priority from higher priority tasks
+	// We use AcquiredResource_t to return tasks' priority to the one when it acquired the resource (semaphore)
+	int8_t retVal = 0;
+	retVal = PIP_iResetPriority(pSemaphore, pTaskToReleaseResource);
 
 #if DEBUG
 	vPrintString("Resource "); vPrintInteger(pSemaphore->uId); vPrintStringLn(" gets released");
 #endif
+	return retVal;
+}
+
+int8_t PIP_iResetPriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
+
+	int8_t iResourceIndex = Semaphore_iGetIndex(pTaskToReleaseResource, pSemaphore);
+	if (iResourceIndex < 0) {
+#if DEBUG
+		vPrintStringLn("Error in function 'PIP_iResetPriority'. NULL Semaphore_iGetIndex returned non-positive value");
+#endif
+		return -1;
+	}
+
+	// The task that releases the semaphore can inherit priority from higher priority tasks
+	// We use AcquiredResource_t to return tasks' priority to the one when it acquired the resource (semaphore)
+	AcquiredResource_t* pAcquiredResource = gll_get(pTaskToReleaseResource->pAcquiredResourceList, iResourceIndex);
+	if (pAcquiredResource == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'PIP_iResetPriority'. NULL Semaphore_iGetIndex returned non-positive value");
+#endif
+		return -1;
+	}
+	pTaskToReleaseResource->uActivePriority = pAcquiredResource->uTaskPriorityWhenItAcquiredResource;
+	pAcquiredResource->uTaskPriorityWhenItAcquiredResource = WORKER_TASK_NONE_PRIORITY;
+
 	return 0;
 }
 
+int8_t PIP_iSetPriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource) {
+
+	int8_t iResourceIndex = Semaphore_iGetIndex(pTaskToAquireResource, pSemaphore);
+	if (iResourceIndex < 0) {
+#if DEBUG
+		vPrintStringLn("Error in function 'PIP_iSetPriority'. NULL Semaphore_iGetIndex returned non-positive value");
+#endif
+		return -1;
+	}
+
+	// Store current active priority of the task that locked the semaphore,
+	// This information has to be stored, because this task can inherit priority from higher priority tasks
+	// We use AcquiredResource_t once we unlock the semaphore to return tasks' priority to the one when it acquired the resource (semaphore)
+	AcquiredResource_t* pAcquiredResource = gll_get(pTaskToAquireResource->pAcquiredResourceList, iResourceIndex);
+	if (pAcquiredResource == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'PIP_iSetPriority'. NULL Semaphore_iGetIndex returned non-positive value");
+#endif
+		return -1;
+	}
+	
+	pAcquiredResource->uTaskPriorityWhenItAcquiredResource = pTaskToAquireResource->uActivePriority;
+
+	return 0;
+}
 
 /* Transmit its active priority to the task that holds the semaphore */
 //void transmitTasksActivePriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, WorkerTaskList_t* pTaskList) {

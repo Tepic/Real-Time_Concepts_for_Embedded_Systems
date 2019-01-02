@@ -12,6 +12,7 @@
 static void vPrintStringLn(const char *pcString);
 static void vPrintString(const char *pcString);
 static void vPrintInteger(uint8_t intVal);
+static void vPrintChar(char charVal);
 
 void vPrintStringLn(const char *pcString)
 {
@@ -30,6 +31,17 @@ void vPrintInteger(uint8_t intVal)
 	taskENTER_CRITICAL();
 	{
 		printf("%d", intVal);
+		fflush(stdout);
+	}
+	taskEXIT_CRITICAL();
+}
+
+void vPrintChar(char charVal)
+{
+	/* Write the string to stdout, using a critical section as a crude method of mutual exclusion. */
+	taskENTER_CRITICAL();
+	{
+		printf("%c", charVal);
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();

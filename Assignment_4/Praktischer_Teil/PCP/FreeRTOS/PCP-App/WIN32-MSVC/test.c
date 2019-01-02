@@ -205,6 +205,83 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseT
 }
 
 
+void vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriority(gll_t* semaphoreList, gll_t* taskList) {
+
+	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
+	WorkerTask_t* blockingTask = gll_get(taskList, 2);
+	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
+	WorkerTask_t* pTask_4 = gll_get(taskList, 4);
+
+	Semaphore_t* pSemaphore_A = gll_get(semaphoreList, 0);
+	Semaphore_t* pSemaphore_B = gll_get(semaphoreList, 1);
+	Semaphore_t* pSemaphore_C = gll_get(semaphoreList, 2);
+
+	uint8_t blockingTaskPriorityOld = blockingTask->uActivePriority;
+
+	/* Lock Semaphore A */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
+	WorkerTask_vPrint(blockingTask);
+
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	WorkerTask_vPrint(blockingTask);
+	vPrintStringLn("");
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	/* Lock Semaphore C */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
+	WorkerTask_vPrint(blockingTask);
+
+	retVal = PIP_SemaphoreTake(pSemaphore_C, blockingTask, taskList);
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	WorkerTask_vPrint(blockingTask);
+	vPrintStringLn("");
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	vPrintStringLn("The BLOCKING Task: ");
+	WorkerTask_vPrint(blockingTask);
+
+	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_B->uId - 1 + '0');
+	PIP_vSemaphoreGive(pSemaphore_B, blockingTask);
+	WorkerTask_vListPrintPriority(pSemaphore_B->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	vPrintString("The BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" releasing the semaphore ");  vPrintChar(pSemaphore_A->uId - 1 + '0');
+	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	WorkerTask_vPrint(blockingTask);
+
+	if (blockingTask->uActivePriority != blockingTaskPriorityOld) {
+		assert();
+		return;
+	}
+
+	if (blockingTask->uActivePriority != blockingTask->uNominalPriority) {
+		assert();
+		return;
+	}
+
+	testPassed();
+}
+
+
 void vTast_PrintList(gll_t* integerList) {
 
 	if (integerList->size == 0) {
@@ -278,6 +355,7 @@ void vTest(TaskFunction_t taskHandler_1,
 
 	gll_t* taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
+
 	gll_t* semaphoreList_task_1 = gll_init();
 	gll_t* semaphoreList_task_2 = gll_init();
 	gll_t* semaphoreList_task_3 = gll_init();
@@ -291,17 +369,16 @@ void vTest(TaskFunction_t taskHandler_1,
 	gll_push(semaphoreList_task_1, pSemaphore_C);
 	WorkerTask_t* pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 10, 10, semaphoreList_task_1);
 
-
-	gll_push(semaphoreList_task_1, pSemaphore_A);
-	gll_push(semaphoreList_task_1, pSemaphore_C);
+	gll_push(semaphoreList_task_2, pSemaphore_A);
+	gll_push(semaphoreList_task_2, pSemaphore_C);
 	WorkerTask_t* pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 3, 10, semaphoreList_task_2);
 
-	gll_push(semaphoreList_task_1, pSemaphore_A);
-	gll_push(semaphoreList_task_1, pSemaphore_B);
+	gll_push(semaphoreList_task_3, pSemaphore_A);
+	gll_push(semaphoreList_task_3, pSemaphore_B);
 	WorkerTask_t* pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 5, 10, semaphoreList_task_3);
 
-	gll_push(semaphoreList_task_1, pSemaphore_A);
-	gll_push(semaphoreList_task_1, pSemaphore_B);
+	gll_push(semaphoreList_task_4, pSemaphore_A);
+	gll_push(semaphoreList_task_4, pSemaphore_B);
 	WorkerTask_t* pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
@@ -321,7 +398,8 @@ void vTest(TaskFunction_t taskHandler_1,
 	//vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(pSemaphore_A, pTask_1, pTask_2, taskList);
 	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
 	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
-	vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseTheSemaphore(pSemaphore_A, taskList);
+	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseTheSemaphore(pSemaphore_A, taskList);
+	vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriority(semaphoreList, taskList);
 	//vTast_TestAddList();
 
 	WorkerTask_vDestroy(pTask_1);

@@ -1,5 +1,6 @@
 #pragma once
 #include "acquiredResource.h"
+#include "debug.h"
 
 AcquiredResource_t* AcquiredResource_Create() {
 
