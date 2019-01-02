@@ -34,22 +34,22 @@ uint8_t Semaphore_GetId(Semaphore_t* pSemaphore) {
 	return *(pSemaphore->uId);
 }
 
-void PIP_inheritPriority(Semaphore_t* pSemaphore, WorkerTask_t* pBlockedTask, gll_t* pTaskList) {
+void PIP_inheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList) {
+
+	if (pSemaphore == NULL || pTaskList == NULL) {
+		vPrintStringLn("Error in function 'PIP_inheritPriority'. NULL pointer");
+		return;
+	}
 
 	WorkerTask_t* pBlockingTask = gll_get(pTaskList, pSemaphore->uAcquiredByTaskNum);
+	WorkerTask_t* pBlockedTaskWithMaxPriority = gll_get(pSemaphore->pBlockedTaskList, 0);
 
-	if (pBlockingTask == pBlockedTask) {
-		vPrintStringLn("Error in function 'PIP_inheritPriority'. Same pointer values for pBlockingTask and pBlockedTask");
-		return;
+	// We need to inherit only priority if we are lower priority task
+	if (pBlockingTask->uActivePriority < pBlockedTaskWithMaxPriority->uActivePriority) {
+		// Inherit priority maximum of all priorities of tasks blocked on the semaphore
+		pBlockingTask->uActivePriority = pBlockedTaskWithMaxPriority->uActivePriority;
 	}
-
-	if ( WorkerTask_uGetActivePriority(pBlockingTask) == WorkerTask_uGetActivePriority(pBlockedTask) ) {
-		vPrintStringLn("Error in function 'PIP_inheritPriority'. Same uActivePriority values for pBlockingTask and pBlockedTask");
-		return;
-	}
-	// Inherit priority
-	WorkerTask_vSetActivePriority( pBlockingTask, WorkerTask_uGetActivePriority(pBlockedTask) );
-
+	
 }
 
 int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
@@ -69,10 +69,11 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 		WorkerTask_vListPrintPriority(pSemaphore->pBlockedTaskList);
 		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskToAquireResource);
 
-		// Transmit its active priority to the task that holds the semaphore
-		PIP_inheritPriority(pSemaphore, pTaskToAquireResource, pTaskList);
-
 		printf("%s%d%s%c%s\n", "Task ", WorkerTask_vGetTaskNumber(pTaskToAquireResource), " failed to acquire semaphore ", pSemaphore->uId, "and task gets blocked");
+
+		// Transmit its active priority to the task that holds the semaphore
+		PIP_inheritPriority(pSemaphore, pTaskList);
+		
 		retVal = 1;
 		return;
 	}
@@ -84,8 +85,10 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	}
 
 	// Since lock is successful, update semaphore's info; semaphore locked by the current task
-	pSemaphore->uAcquiredByTaskNum = WorkerTask_vGetTaskNumber(pTaskToAquireResource);
+	pSemaphore->uAcquiredByTaskNum = pTaskToAquireResource->uTaskNumber;
 	
+	pTaskToAquireResource->uPriorityWhenItAcquiredResource = pTaskToAquireResource->uActivePriority;
+
 	// TODO: change priority of the task for ICPP
 	vPrintString("Task "); vPrintInteger(WorkerTask_vGetTaskNumber(pTaskToAquireResource)); 
 	vPrintString(" acquired resource "); vPrintString(pSemaphore->uId); vPrintStringLn("");
@@ -123,24 +126,12 @@ int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseR
 		return -1;
 	}
 
-	// unlocks the semaphore set it to the nominal priority or
-	if (pSemaphore->pBlockedTaskList->size == 0) {
-		WorkerTask_vResetActivePriority(pTaskToReleaseResource);
-	}
-	//TODO: //gll_remove(pBlockedTaskList, indexof_pBlockedTaskList);
-	else {
-		//TODO: sort pBlockedTaskList in PIP_SemaphoreTake so you do not have to search through it here
-		//getPriorityNum_of_HighestPriorityBlockedTask(pSemaphoreHandle);
-	}
-	
-	/* TODO: Set it to the highest priority of blocked tasks 
-	   we need to have a list of blocked tasks, only if the list has 1 element we actually reset to nominal priority
-	   else we set tasks priority to 'the highest priority of blocked tasks' */
-	
+	// Return the priority of the task to its pwriority at the time when it acquired the resource
+	pTaskToReleaseResource->uActivePriority = pTaskToReleaseResource->uPriorityWhenItAcquiredResource;
+
 	vPrintString("Resource "); vPrintString(pSemaphore->uId); vPrintStringLn(" gets released");
 	return 0;
 }
-
 
 
 /* Transmit its active priority to the task that holds the semaphore */

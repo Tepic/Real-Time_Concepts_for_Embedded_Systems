@@ -144,20 +144,33 @@ void vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(Semaphore_t* pSemaphore_A, W
 
 void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShouldBeSortedInAList(Semaphore_t* pSemaphore_A, gll_t* taskList) {
 
-	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
+	WorkerTask_t* blockingTask = gll_get(taskList, 1);
 	WorkerTask_t* pTask_2 = gll_get(taskList, 2);
 	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
-	WorkerTask_t* blockingTask = gll_get(taskList, 4);
+	WorkerTask_t* pTask_4 = gll_get(taskList, 4);
+
+	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
 
 	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+
+	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
+	vPrintStringLn("");
 
 	if (retVal != 0) {
 		assert();
 		return;
 	}
 
-	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	/*
+	WorkerTask_t* blockingTask = gll_get(taskList, 2);
 	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
+	*/
+	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
 	PIP_SemaphoreTake(pSemaphore_A, pTask_2, taskList);
 
 	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
@@ -166,6 +179,76 @@ void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShou
 
 	testPassed();
 }
+
+void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBlockedTasksOnItShouldBeSortedInAList(Semaphore_t* pSemaphore_A, gll_t* taskList) {
+
+	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
+	WorkerTask_t* blockingTask = gll_get(taskList, 2);
+	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
+	WorkerTask_t* pTask_4 = gll_get(taskList, 4);
+
+	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
+
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+
+	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
+	vPrintStringLn("");
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+	
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	vPrintStringLn("The BLOCKING Task: ");
+	WorkerTask_vPrint(blockingTask);
+
+	testPassed();
+}
+
+void vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseTheSemaphore(Semaphore_t* pSemaphore_A, gll_t* taskList) {
+
+	WorkerTask_t* pTask_1 = gll_get(taskList, 1);
+	WorkerTask_t* blockingTask = gll_get(taskList, 2);
+	WorkerTask_t* pTask_3 = gll_get(taskList, 3);
+	WorkerTask_t* pTask_4 = gll_get(taskList, 4);
+
+	vPrintStringLn("\nThe BLOCKING Task before aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
+
+	int8_t retVal = PIP_SemaphoreTake(pSemaphore_A, blockingTask, taskList);
+
+	vPrintStringLn("The BLOCKING Task after aquiring the semaphore: ");
+	WorkerTask_vPrint(blockingTask);
+	vPrintStringLn("");
+
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
+	PIP_SemaphoreTake(pSemaphore_A, pTask_1, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_4, taskList);
+	PIP_SemaphoreTake(pSemaphore_A, pTask_3, taskList);
+
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	vPrintStringLn("The BLOCKING Task: ");
+	WorkerTask_vPrint(blockingTask);
+
+	PIP_vSemaphoreGive(pSemaphore_A, blockingTask);
+	WorkerTask_vListPrintPriority(pSemaphore_A->pBlockedTaskList);
+	vPrintStringLn("After releasing BLOCKING Task: ");
+	WorkerTask_vPrint(blockingTask);
+
+	testPassed();
+}
+
 
 void vTast_PrintList(gll_t* integerList) {
 
@@ -261,7 +344,9 @@ void vTest() {
 	//vTest_SemaphoreIsNotAquired(pSemaphore_A, pTask_1, taskList);
 	//vTest_SemaphoreIsAlreadyAquired(pSemaphore_A, pTask_1, pTask_2, taskList);
 	//vTest_SemaphoreIsAlreadyAquiredAndGetsReleased(pSemaphore_A, pTask_1, pTask_2, taskList);
-	vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
+	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
+	//vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByHighPriorityTaskAndBlockedTasksOnItShouldBeSortedInAList(pSemaphore_A, taskList);
+	vTest_WhenWeTryToAcquireSemaphoreItIsAlreadyAcquiredByAndAfterwardsReleaseTheSemaphore(pSemaphore_A, taskList);
 	//vTast_TestAddList();
 
 	WorkerTask_vDestroy(pTask_1);

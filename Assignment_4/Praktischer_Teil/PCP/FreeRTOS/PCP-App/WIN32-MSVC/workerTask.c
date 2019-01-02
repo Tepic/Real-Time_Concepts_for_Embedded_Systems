@@ -11,6 +11,7 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber,
 
 	pWorkerTask->uTaskNumber = uTaskNumber;
 	pWorkerTask->uExecutionTime = uExecutionTime;
+	pWorkerTask->uPriorityWhenItAcquiredResource = WORKER_TASK_NONE_PRIORITY;
 
 	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
 	
@@ -67,35 +68,6 @@ uint8_t WorkerTask_vSizeOf() {
 	return sizeof(WorkerTask_t);
 }
 
-/*
-void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
-	if (pTaskToInsertIntoTheList == NULL || pTaskList == NULL) {
-		vPrintStringLn("Error in function 'WorkerTask_vListAddDescendingPriority'. NULL Pointer");
-		return;
-	}
-
-	// If no elements in the list add it to the front of the list
-	if (pTaskList->size == 0) {
-		gll_push(pTaskList, pTaskToInsertIntoTheList);
-		return;
-	}
-
-	uint8_t maxPriority = 0;
-	WorkerTask_t* pBlockedTask;
-	for (uint8_t index = 0; index < pTaskList->size; ++index) {
-		pBlockedTask = (WorkerTask_t*) gll_get(pTaskList, index);
-		if (pTaskToInsertIntoTheList->uActivePriority >= pBlockedTask->uActivePriority) {
-			gll_add(pTaskToInsertIntoTheList, pBlockedTask, index + 1);
-			return;
-		}
-	}
-
-	// Add task to end of list since it has lowest priority (list is sorted in descending order w.r.t. priorities
-	gll_pushBack(pTaskList, pTaskToInsertIntoTheList);
-	
-}*/
-
-
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
 
 	if (pTaskList->size == 0) {
@@ -140,9 +112,11 @@ void WorkerTask_vListPrintPriority(gll_t* pTaskList) {
 		vPrintStringLn("Function 'WorkerTask_vListPrintPriority' empty list");
 	}
 
+	vPrintStringLn("");
 	WorkerTask_t* pBlockedTask; 
 	for (uint8_t index = 0; index < pTaskList->size; ++index) {
 		pBlockedTask = gll_get(pTaskList, index);
 		WorkerTask_vPrint(pBlockedTask);
 	}
+	vPrintStringLn("");
 }

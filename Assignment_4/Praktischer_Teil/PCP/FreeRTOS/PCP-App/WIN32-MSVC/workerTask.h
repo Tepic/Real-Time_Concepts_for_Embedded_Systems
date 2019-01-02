@@ -12,6 +12,8 @@
 #include "bool_t.h"
 #include "gll.h"
 
+#define WORKER_TASK_NONE_PRIORITY 0
+
 /* variable declarations */
 typedef struct workerTask
 {
@@ -19,6 +21,7 @@ typedef struct workerTask
 	uint8_t uTaskNumber;
 	uint8_t uNominalPriority;
 	uint8_t uActivePriority;
+	uint8_t uPriorityWhenItAcquiredResource;
 	uint32_t uExecutionTime;
 
 } WorkerTask_t;
