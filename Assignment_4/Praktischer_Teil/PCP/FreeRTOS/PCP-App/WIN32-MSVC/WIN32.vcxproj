@@ -81,6 +81,7 @@
     <ClCompile Include="..\..\Source\portable\MemMang\heap_5.c" />
     <ClCompile Include="..\..\Source\stream_buffer.c" />
     <ClCompile Include="..\..\Source\timers.c" />
+    <ClCompile Include="acquiredResource.c" />
     <ClCompile Include="gll.c" />
     <ClCompile Include="main.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -105,6 +106,7 @@
     <ClCompile Include="main_exercise.c" />
     <ClCompile Include="Run-time-stats-utils.c" />
     <ClCompile Include="semaphore.c" />
+    <ClCompile Include="test.c" />
     <ClCompile Include="workerTask.c" />
   </ItemGroup>
   <ItemGroup>
@@ -113,7 +115,9 @@
     <ClInclude Include="..\..\Source\include\stream_buffer.h" />
     <ClInclude Include="..\..\Source\include\timers.h" />
     <ClInclude Include="..\..\Source\portable\MSVC-MingW\portmacro.h" />
+    <ClInclude Include="acquiredResource.h" />
     <ClInclude Include="bool_t.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="FreeRTOSConfig.h" />
     <ClInclude Include="..\..\Source\include\croutine.h" />
     <ClInclude Include="..\..\Source\include\FreeRTOS.h" />
@@ -126,6 +130,7 @@
     <ClInclude Include="gll.h" />
     <ClInclude Include="print.h" />
     <ClInclude Include="semaphore.h" />
+    <ClInclude Include="test.h" />
     <ClInclude Include="workerTask.h" />
   </ItemGroup>
   <ItemGroup>

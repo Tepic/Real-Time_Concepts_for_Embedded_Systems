@@ -14,6 +14,7 @@
 
 #define WORKER_TASK_NONE_PRIORITY 0
 
+
 /* variable declarations */
 typedef struct workerTask
 {
@@ -22,22 +23,19 @@ typedef struct workerTask
 	uint8_t uNominalPriority;
 	uint8_t uActivePriority;
 	uint8_t uPriorityWhenItAcquiredResource;
-	uint32_t uExecutionTime;
+	uint8_t uReleaseTime;
+	uint8_t uPeriod;
+	gll_t* pAcquiredResourceList;
 
 } WorkerTask_t;
 
 /* Function declarations */
-WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint32_t uExecutionTime);
+
+WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint8_t uReleaseTime, uint8_t uPeriod, gll_t* pUsedSemaphoreList);
 void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
-uint8_t WorkerTask_vGetTaskNumber(WorkerTask_t* pWorkerTask);
-void WorkerTask_vSetActivePriority(WorkerTask_t* pWorkerTask, uint8_t uActivePriority);
-void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask);
-uint8_t WorkerTask_uGetActivePriority(WorkerTask_t* pWorkerTask);
-uint8_t WorkerTask_uGetNominalPriority(WorkerTask_t* pWorkerTask);
-TaskHandle_t WorkerTask_vGetHandle(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
-uint8_t WorkerTask_vSizeOf();
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pWorkerTask);
 void WorkerTask_vListPrintPriority(gll_t* pTaskList);
+void WorkerTask_vResetActivePriority(WorkerTask_t* pWorkerTask);
 
 #endif //end TASK_H_

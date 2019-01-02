@@ -76,6 +76,12 @@
     <ClCompile Include="gll.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
+    <ClCompile Include="acquiredResource.c">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeRTOSConfig.h">
@@ -133,6 +139,15 @@
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="gll.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
+    <ClInclude Include="acquiredResource.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </ClInclude>
+    <ClInclude Include="test.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
   </ItemGroup>
