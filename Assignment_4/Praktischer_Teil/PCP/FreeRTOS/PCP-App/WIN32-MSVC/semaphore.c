@@ -72,13 +72,10 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 		retVal = 1;
 	}
 
-	xSemaphoreTake(pSemaphore->semphHandle, (TickType_t)0);
-	// TODO: uncomment these lines after testing
-	/*
 	// acquire the semaphore
 	if (xSemaphoreTake(pSemaphore->semphHandle, (TickType_t) 0) != pdTRUE) {
 		return -1;
-	}*/
+	}
 
 	// Since lock is successful, update semaphore's info; semaphore locked by the current task
 	pSemaphore->uAcquiredByTaskNum = WorkerTask_vGetTaskNumber(pTaskToAquireResource);
@@ -91,7 +88,7 @@ int8_t PIP_SemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireRes
 	return 0;
 }
 
-int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource) {
+int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource, gll_t* pBlockedTaskList) {
 
 	if (pSemaphoreHandle == NULL) {
 		vPrintStringLn("Error in function 'PIP_vSemaphoreGive'. NULL Pointer");
@@ -104,8 +101,11 @@ int8_t PIP_vSemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToRe
 	}
 
 	// unlocks the semaphore set it to the nominal priority or
-	// TODO: Set it to the highest priority of blocked tasks
 	WorkerTask_vResetActivePriority(pTaskToReleaseResource);
+	/* TODO: Set it to the highest priority of blocked tasks 
+	   we need to have a list of blocked tasks, only if the list has 1 element we actually reset to nominal priority
+	   else we set tasks priority to 'the highest priority of blocked tasks' */
+	
 	vPrintString("Resource "); vPrintString(pSemaphoreHandle->uId); vPrintStringLn(" gets released");
 	return 0;
 }
