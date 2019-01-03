@@ -380,12 +380,13 @@ int8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAqu
 	uint8_t uActivePriorityNew = pTaskToAquireResource->uActivePriority;
 
 	// TODO: Print Task <x> acquired resource <y> and changed its priority from <i> to <j>.
+#if IS_SCHEDULER_RUNNING
 	vPrintString("Task "); vPrintInteger(pTaskToAquireResource->uTaskNumber);
 	vPrintString(" acquired resource ");
 	vPrintChar(pSemaphore->uId + 'A' - 1);
 	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
-	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn("");
-
+	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn(".");
+#endif
 	return retVal;
 
 }
@@ -393,17 +394,18 @@ int8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAqu
 int8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
 
 	int8_t retVal = -1;
-	// TODO: Print Task <x> released resource <y> and changed its priority from <i> to <j>.
+
 	uint8_t uActivePriorityOld = pTaskToReleaseResource->uActivePriority;
 	// TODO: Implement ICPP
 	retVal = PIP_vBinarySemaphoreGive(pSemaphore, pTaskToReleaseResource);
 
 	uint8_t uActivePriorityNew = pTaskToReleaseResource->uActivePriority;
 
+#if IS_SCHEDULER_RUNNING
 	vPrintString("Task "); vPrintInteger(pTaskToReleaseResource->uTaskNumber);
 	vPrintString(" released resource "); vPrintChar(pSemaphore->uId - 1 + 'A');
 	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
-	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn("");
-
+	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn(".");
+#endif
 	return retVal;
 }

@@ -65,7 +65,7 @@
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
 #define TASK_SCHEDULER_PRIORITY 6
-#define TASK_SCHEDULER_TICK_TIME 1
+#define TASK_SCHEDULER_TICK_TIME 2
 
 /* TODO: output frequencey
 */
@@ -128,8 +128,8 @@ uint32_t ulUselessVariable = 0;
 	}
 }
 
-// TODO
 
+// TODO
 void prvTaskSchedulerHandler(void *pvParameters) {
 	if (pvParameters == NULL) {
 #if DEBUG
@@ -138,51 +138,43 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 		return;
 	}
 
-	uint32_t uCurrentTickCount = 0;
+	static uint32_t sCurrentTickCount = 0;
+
 	gll_t* pTaskList = (gll_t*) pvParameters;
 
 	WorkerTask_t* pWorkerTask = NULL;
 	while (true) {
-		
-		//vPrintString("Current tick time: "); vPrintInteger(uCurrentTickCount); vPrintString("\n");
-
+#if DEBUG
+		vPrintString("Current tick time: "); vPrintInteger(sCurrentTickCount); vPrintString("\n");
+#endif
 		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++) {
 
 			pWorkerTask = gll_get(pTaskList, uIndex);
 
-			if (pWorkerTask == NULL) {
-				// TODO: Handle Error ?
-				break;
-			}
-
 			if (!pWorkerTask->isReleased &&
-				(pWorkerTask->uReleaseTime == uCurrentTickCount) ){
+				(pWorkerTask->uReleaseTime == sCurrentTickCount) ){
 
 				pWorkerTask->isReleased = true;
 				vTaskResume(pWorkerTask->xHandle);
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", uCurrentTickCount);
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", sCurrentTickCount);
 				}
 #endif 
 			}
 			else if (pWorkerTask->isReleased &&
-					 ( uCurrentTickCount % (pWorkerTask->uReleaseTime + pWorkerTask->uPeriod) ) == 0) {
+					 (sCurrentTickCount % (pWorkerTask->uReleaseTime + pWorkerTask->uPeriod) ) == 0) {
 
 				vTaskResume(pWorkerTask->xHandle);
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", uCurrentTickCount);
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", sCurrentTickCount);
 				}
 #endif 
 			}
-			else {
-				// TODO: Handle Error ?
-			}
-
 		}
 
-		uCurrentTickCount++;
+		sCurrentTickCount++;
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 }
@@ -203,7 +195,7 @@ static void prvTask1(void *pvParameters)
 	
 	while (true) {
 		
-		vUselessLoad(1); //emulate Task doing something for 1 time unit
+		vUselessLoad(1); // Emulate Task doing something for 1 time unit
 		usPrioritySemaphoreWait(pSemaphore_B, workerTask_1, global_taskList);
 		vUselessLoad(1);
 		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_1);
@@ -303,7 +295,7 @@ static void prvTask4(void *pvParameters)
 		vUselessLoad(2);
 		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_4);
 		vUselessLoad(2);
-		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_4);
+		usPrioritySemaphoreSignal(pSemaphore_A, workerTask_4);
 		vUselessLoad(1);
 
 		// Task completed one period, suspend it
@@ -365,8 +357,8 @@ void vInitialize(
 	xTaskCreate(schedulerHandler, "Scheduler", 1000, global_taskList, TASK_SCHEDULER_PRIORITY, &xTaskSchedulerHandle);
 
 	vTaskSuspend(pTask_1->xHandle);
-	//vTaskSuspend(pTask_2->xHandle);
+	vTaskSuspend(pTask_2->xHandle);
 	vTaskSuspend(pTask_3->xHandle);
-	vTaskSuspend(pTask_4->xHandle);
+	//vTaskSuspend(pTask_4->xHandle);
 }
 
