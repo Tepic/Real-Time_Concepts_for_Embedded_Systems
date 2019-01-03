@@ -64,6 +64,9 @@
 
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
+#define TASK_SCHEDULER_PRIORITY 6
+#define TASK_SCHEDULER_TICK_TIME 1
+
 /* TODO: output frequencey
 */
 TickType_t currentTime = 0;
@@ -80,7 +83,10 @@ static void prvTask1(void *pvParameters);
 static void prvTask2(void *pvParameters);
 static void prvTask3(void *pvParameters);
 static void prvTask4(void *pvParameters);
-void vInitialize(TaskFunction_t taskHandler_1,
+static void prvTaskSchedulerHandler(void *pvParameters);
+
+void vInitialize(TaskFunction_t schedulerHandler,
+	TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
 	TaskFunction_t taskHandler_3,
 	TaskFunction_t taskHandler_4,
@@ -93,7 +99,7 @@ void vInitialize(TaskFunction_t taskHandler_1,
 
 void main_exercise( void )
 {
-	// TODO
+	// TODO: Still have to do ICPP 
 	WorkerTask_t* pTask_1 = NULL;
 	WorkerTask_t* pTask_2 = NULL;
 	WorkerTask_t* pTask_3 = NULL;
@@ -103,14 +109,11 @@ void main_exercise( void )
 
 #if TEST
 	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
-#elif DEBUG
-	//vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
-	//vTaskStartScheduler();
-#elif !DEBUG
-	vInitialize(prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
+#elif IS_SCHEDULER_RUNNING
+	vInitialize(prvTaskSchedulerHandler, prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
 	vTaskStartScheduler();
 #endif
-
+	
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
@@ -127,6 +130,33 @@ uint32_t ulUselessVariable = 0;
 
 // TODO
 
+void prvTaskSchedulerHandler(void *pvParameters) {
+	if (pvParameters == NULL) {
+#if DEBUG
+		vPrintStringLn("Error in function 'prvTaskSchedulerHandler'. NULL Pointer");
+#endif
+		return;
+	}
+
+	gll_t* pTaskList = (gll_t*) pvParameters;
+
+	WorkerTask_t* pWorkerTask = NULL;
+	while (true) {
+		
+		for (uint8_t uIndex = 0; ++uIndex < pTaskList->size; uIndex++) {
+
+			pWorkerTask = gll_get(pTaskList, uIndex);
+			if (pWorkerTask != NULL && 
+				(pWorkerTask->uReleaseTime % pWorkerTask->uPeriod) == 0) {
+
+				vTaskResume(pWorkerTask->xHandle);
+			}
+		}
+
+		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
+	}
+}
+
 static void prvTask1(void *pvParameters)
 {
 	if (pvParameters == NULL) {
@@ -142,11 +172,20 @@ static void prvTask1(void *pvParameters)
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_1->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 	
 	while (true) {
-		vUselessLoad(1);
-		PIP_BinarySemaphoreTake(pSemaphore_C, workerTask_1, global_taskList);
-		vTaskDelay(1000 * SCHEDULER_OUTPUT_FREQUENCY_MS);
-	}
 		
+		vUselessLoad(1); //emulate Task doing something for 1 time unit
+		usPrioritySemaphoreWait(pSemaphore_B, workerTask_1, global_taskList);
+		vUselessLoad(1);
+		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_1);
+		vUselessLoad(1);
+		usPrioritySemaphoreWait(pSemaphore_C, workerTask_1, global_taskList);
+		vUselessLoad(1);
+		usPrioritySemaphoreSignal(pSemaphore_C, workerTask_1);
+		vUselessLoad(1);
+
+		// Task completed one period, suspend it
+		vTaskSuspend(workerTask_1->xHandle);
+	}
 }
 
 static void prvTask2(void *pvParameters)
@@ -164,25 +203,19 @@ static void prvTask2(void *pvParameters)
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 
 	while (true) {
+
+		vUselessLoad(1); //emulate Task doing something for 1 time unit
+		usPrioritySemaphoreWait(pSemaphore_C, workerTask_2, global_taskList);
+		vUselessLoad(2);
+		usPrioritySemaphoreSignal(pSemaphore_C, workerTask_2);
+		vUselessLoad(2);
+		usPrioritySemaphoreWait(pSemaphore_A, workerTask_2, global_taskList);
 		vUselessLoad(1);
-#if DEBUG
-		eTaskState currentTaskState = eTaskGetState(workerTask_2->xHandle);
+		usPrioritySemaphoreSignal(pSemaphore_A, workerTask_2);
+		vUselessLoad(1);
 
-		if (currentTaskState == eRunning)
-		{
-			vPrintStringLn("Task 2 is in Running State");
-		}
-#endif
-		PIP_BinarySemaphoreTake(pSemaphore_C, workerTask_2, global_taskList);
-#if DEBUG
-		currentTaskState = eTaskGetState(workerTask_2->xHandle);
-
-		if (currentTaskState == eBlocked)
-		{
-			vPrintStringLn("Task 2 is in Blocked State");
-		}
-#endif
-		vTaskDelay(2000 * SCHEDULER_OUTPUT_FREQUENCY_MS);
+		// Task completed one period, suspend it
+		vTaskSuspend(workerTask_2->xHandle);
 	}
 }
 
@@ -202,6 +235,18 @@ static void prvTask3(void *pvParameters)
 
 	while (true) {
 
+		vUselessLoad(2); //emulate Task doing something for 2 time unit
+		usPrioritySemaphoreWait(pSemaphore_B, workerTask_3, global_taskList);
+		vUselessLoad(1);
+		usPrioritySemaphoreWait(pSemaphore_A, workerTask_3, global_taskList);
+		vUselessLoad(2);
+		usPrioritySemaphoreSignal(pSemaphore_A, workerTask_3);
+		vUselessLoad(2);
+		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_3);
+		vUselessLoad(1);
+
+		// Task completed one period, suspend it
+		vTaskSuspend(workerTask_3->xHandle);
 	}
 }
 
@@ -220,12 +265,25 @@ static void prvTask4(void *pvParameters)
 	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_4->pUsedSemaphoreList, 2); // Semaphore B ID = 2
 
 	while (true) {
+		
+		vUselessLoad(2); //emulate Task doing something for 2 time unit
+		usPrioritySemaphoreWait(pSemaphore_A, workerTask_4, global_taskList);
 		vUselessLoad(2);
-		//usPrioritySemaphoreWait(pSemaphore_A, prvTask4);
+		usPrioritySemaphoreWait(pSemaphore_B, workerTask_4, global_taskList);
+		vUselessLoad(2);
+		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_4);
+		vUselessLoad(2);
+		usPrioritySemaphoreSignal(pSemaphore_B, workerTask_4);
+		vUselessLoad(1);
+
+		// Task completed one period, suspend it
+		vTaskSuspend(workerTask_4->xHandle);
 	}
 }
 
-void vInitialize(TaskFunction_t taskHandler_1,
+void vInitialize(
+	TaskFunction_t schedulerHandler,
+	TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
 	TaskFunction_t taskHandler_3,
 	TaskFunction_t taskHandler_4, 
@@ -273,5 +331,13 @@ void vInitialize(TaskFunction_t taskHandler_1,
 	gll_pushBack(semaphoreList, pSemaphore_B);
 	gll_pushBack(semaphoreList, pSemaphore_C);
 
+	// Initialize scheduler 
+	TaskHandle_t xTaskSchedulerHandle;
+	xTaskCreate(schedulerHandler, "Scheduler", 1000, global_taskList, TASK_SCHEDULER_PRIORITY, &xTaskSchedulerHandle);
+
+	vTaskSuspend(pTask_1->xHandle);
+	//vTaskSuspend(pTask_2->xHandle);
+	vTaskSuspend(pTask_3->xHandle);
+	vTaskSuspend(pTask_4->xHandle);
 }
 

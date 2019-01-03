@@ -1,6 +1,5 @@
 #include "workerTask.h"
 #include "print.h"
-#include "acquiredResource.h"
 #include "debug.h"
 
 WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
@@ -20,40 +19,13 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
 
 	pWorkerTask->pUsedSemaphoreList = pUsedSemaphoreList;
-
 	pWorkerTask->uNominalPriority = nominalPriority;
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
-
 	pWorkerTask->uTaskNumber = uTaskNumber;
 	pWorkerTask->uPriorityWhenItAcquiredResource = WORKER_TASK_NONE_PRIORITY;
-
 	pWorkerTask->uPeriod = uPeriod;
 	pWorkerTask->uReleaseTime = uReleaseTime;
 
-	pWorkerTask->pAcquiredResourceList = gll_init();
-
-	// do not use 0th index
-	gll_push(pWorkerTask->pAcquiredResourceList, NULL);
-	
-#ifdef DEBUG
-	vPrintString("In task #: "); vPrintInteger(pWorkerTask->uTaskNumber); vPrintStringLn("");
-#endif // DEBUG
-
-	AcquiredResource_t* pAcquiredResource = NULL;
-	Semaphore_t* pUsedSemaphore = NULL;
-	for (uint8_t index = 0; index < pUsedSemaphoreList->size; index++) {
-
-		pAcquiredResource = AcquiredResource_Create();
-		gll_push(pWorkerTask->pAcquiredResourceList, pAcquiredResource);
-
-		pUsedSemaphore = gll_get(pUsedSemaphoreList, index);
-		pAcquiredResource->uSemaphoreId = pUsedSemaphore->uId;
-
-#ifdef DEBUG
-		AcquiredResource_vPrint(pAcquiredResource);
-#endif
-	}
-	
 	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
 
 	return pWorkerTask;
@@ -61,11 +33,6 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 
 void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask) {
 
-	for (uint8_t index = 1; index < pWorkerTask->pAcquiredResourceList->size; index++) {
-		free(gll_get(pWorkerTask->pAcquiredResourceList, index));
-	}
-
-	free(pWorkerTask->pAcquiredResourceList);
 	free(pWorkerTask);
 }
 

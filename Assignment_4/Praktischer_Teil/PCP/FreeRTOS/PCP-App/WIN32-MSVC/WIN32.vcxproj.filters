@@ -76,9 +76,6 @@
     <ClCompile Include="gll.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
-    <ClCompile Include="acquiredResource.c">
-      <Filter>PCP-App Source\PCP-App</Filter>
-    </ClCompile>
     <ClCompile Include="test.c">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClCompile>
@@ -139,9 +136,6 @@
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="gll.h">
-      <Filter>PCP-App Source\PCP-App</Filter>
-    </ClInclude>
-    <ClInclude Include="acquiredResource.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
     <ClInclude Include="debug.h">

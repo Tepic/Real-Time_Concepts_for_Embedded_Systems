@@ -14,7 +14,6 @@
 
 #define WORKER_TASK_NONE_PRIORITY 0
 
-
 /* variable declarations */
 typedef struct workerTask
 {
@@ -25,7 +24,6 @@ typedef struct workerTask
 	uint8_t uPriorityWhenItAcquiredResource;
 	uint8_t uReleaseTime;
 	uint8_t uPeriod;
-	gll_t* pAcquiredResourceList;
 	gll_t* pUsedSemaphoreList;
 
 } WorkerTask_t;
