@@ -40,7 +40,7 @@ Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId
 
 // Functions for ICPP
 // TODO: Implement those function
-uint8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList);
-uint8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource);
+int8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList);
+int8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource);
 
 #endif //end SEMAPHORE_H_

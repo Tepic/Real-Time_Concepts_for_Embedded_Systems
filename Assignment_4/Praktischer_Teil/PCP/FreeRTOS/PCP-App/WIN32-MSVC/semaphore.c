@@ -8,10 +8,12 @@
 #define SEMAPHORE_ALREADY_LOCKED_BY_HIGHER_PRIORITY_TASK 4
 #define SEMAPHORE_ALREADY_LOCKED_BY_LOWER_PRIORITY_TASK 5
 
+static void vTransmitActivePriority(WorkerTask_t* pBlockingTask);
 static int8_t iCheckIfSemaphoreAcquired(WorkerTask_t* pTaskRequestingResource, Semaphore_t* pSemaphore);
 static int8_t PIP_iUpdatePriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource);
 static void PIP_vInheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList);
 static int8_t iCheckIfSemaphoreAlreadyHeldByLowPriorityTask(WorkerTask_t* pTaskRequestingResource, Semaphore_t* pSemaphore, gll_t* pTaskList);
+static int8_t iGetABlockingTask(WorkerTask_t** pBlockingTask, Semaphore_t* pSemaphore, gll_t* pTaskList);
 
 #define max(x,y) ((x) >= (y)) ? (x) : (y)
 
@@ -50,7 +52,7 @@ void Semaphore_vDestroy(Semaphore_t* pSemaphore) {
 	free(pSemaphore);
 }
 
-int8_t iGetABlockingTask(WorkerTask_t* pBlockingTask, Semaphore_t* pSemaphore, gll_t* pTaskList) {
+int8_t iGetABlockingTask(WorkerTask_t** pBlockingTask, Semaphore_t* pSemaphore, gll_t* pTaskList) {
 
 	if (pSemaphore == NULL  || pTaskList == NULL) {
 
@@ -70,7 +72,7 @@ int8_t iGetABlockingTask(WorkerTask_t* pBlockingTask, Semaphore_t* pSemaphore, g
 		return SEMAPHORE_NOK;
 	}
 
-	pBlockingTask = gll_get(pTaskList, blockingTaskId - 1);
+	*pBlockingTask = gll_get(pTaskList, blockingTaskId - 1);
 
 	return SEMAPHORE_OK;
 }
@@ -86,13 +88,13 @@ int8_t iCheckIfSemaphoreAlreadyHeldByLowPriorityTask(WorkerTask_t* pTaskRequesti
 	}
 	
 	WorkerTask_t* pBlockingTask = NULL;
-	int8_t retVal = iGetABlockingTask(pBlockingTask, pSemaphore, pTaskList);
+	int8_t retVal = iGetABlockingTask(&pBlockingTask, pSemaphore, pTaskList);
 	if ( retVal != SEMAPHORE_OK) {
 		return retVal;
 	}
 
 	if (pBlockingTask == NULL) {
-		return;
+		return retVal;
 	}
 
 	if (pTaskRequestingResource->uActivePriority > pBlockingTask->uActivePriority) {
@@ -102,9 +104,9 @@ int8_t iCheckIfSemaphoreAlreadyHeldByLowPriorityTask(WorkerTask_t* pTaskRequesti
 	return SEMAPHORE_ALREADY_LOCKED_BY_HIGHER_PRIORITY_TASK;
 }
 
-void vTransmitActivePriority(WorkerTask_t* pTaskRequestingResource, WorkerTask_t* pBlockingTask) {
+void vTransmitActivePriority(WorkerTask_t* pBlockingTask) {
 
-	if (pTaskRequestingResource == NULL || pBlockingTask == NULL) {
+	if (pBlockingTask == NULL) {
 
 #if DEBUG
 		vPrintStringLn("Error in function 'vTransmitActivePriority'. NULL Pointer");
@@ -139,7 +141,7 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskReque
 
 		// Task that requests the resource is blocked
 		WorkerTask_t* pBlockingTask = NULL;
-		int8_t retVal = iGetABlockingTask(pBlockingTask, pSemaphore, pTaskList);
+		int8_t retVal = iGetABlockingTask(&pBlockingTask, pSemaphore, pTaskList);
 
 		if (retVal != SEMAPHORE_OK) {
 			return retVal;
@@ -149,14 +151,13 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskReque
 			return SEMAPHORE_NOK;
 		}
 
-
 #if DEBUG
-		printf("%s%d%s%c%s%d%s\n", "Task ", pTaskRequestingResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId - 1 + 'A', " and task ", pTaskRequestingResource->uTaskNumber, " gets blocked!");
+		printf("%s%d%s%c%s%d%s\n", "Task ", pTaskRequestingResource->uTaskNumber, " failed to acquire semaphore since its already locked by Lower Priority Task", pSemaphore->uId - 1 + 'A', " and task ", pTaskRequestingResource->uTaskNumber, " gets blocked!");
 #endif
 
 		WorkerTask_vListAddTaskDescendingPriorityOrder(pBlockingTask->pBlockedTaskList, pTaskRequestingResource);
-		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pBlockingTask);
-		vTransmitActivePriority(pTaskRequestingResource, pBlockingTask);
+		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskRequestingResource);
+		vTransmitActivePriority(pBlockingTask);
 	}
 
 	// Try to acquire the semaphore
@@ -164,7 +165,18 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskReque
 
 		// The semaphore was not obtained
 		vTaskSuspend(pTaskRequestingResource->xHandle);
+
+#if DEBUG
+		printf("%s%d%s%c%s%d%s\n", "Task ", pTaskRequestingResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId - 1 + 'A', " and task ", pTaskRequestingResource->uTaskNumber, " gets blocked!");
+#endif
 		return SEMAPHORE_NOK;
+	}
+
+	if (retVal != SEMAPHORE_FREE) {
+#if DEBUG
+		printf("%s%d%s%c%s%d%s\n", "Task ", pTaskRequestingResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId - 1 + 'A', " and task ", pTaskRequestingResource->uTaskNumber, " gets blocked!");
+#endif
+		return retVal;
 	}
 
 	// Since lock request is successful, update semaphore's info; semaphore is now locked by the requesting task
@@ -172,7 +184,7 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskReque
 
 #if DEBUG
 	vPrintString("Task "); vPrintInteger(pTaskRequestingResource->uTaskNumber);
-	vPrintString(" acquired resource "); vPrintInteger(pSemaphore->uId); vPrintStringLn("");
+	vPrintString(" acquired resource "); vPrintChar(pSemaphore->uId - 1 + 'A'); vPrintStringLn("");
 #endif
 
 	return SEMAPHORE_OK;
@@ -208,12 +220,22 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 	}
 
 	WorkerTask_t* pHighestPrirorityTaskBlockedBySemaphore = gll_pop(pSemaphore->pBlockedTaskList);
+
 	// the highest - priority task blocked on the unlocked semaphore, if any, is awakened.
 	if (pHighestPrirorityTaskBlockedBySemaphore != NULL) {
 
-		vTaskResume(pHighestPrirorityTaskBlockedBySemaphore->xHandle);
-	}
+		// Remove the task we have just unblocked from the list
+		gll_pop(pTaskToReleaseResource->pBlockedTaskList);
 
+#if IS_SCHEDULER_RUNNING
+		// Blocked task gets unblocked
+		vTaskResume(pHighestPrirorityTaskBlockedBySemaphore->xHandle); 
+#endif
+#if DEBUG
+		vPrintString("Task #: "); vPrintInteger(pHighestPrirorityTaskBlockedBySemaphore->uTaskNumber); vPrintStringLn(" gets awaken!");
+#endif
+	}
+	
 	// the active priority
 	//	of τj is updated as follows : if no other tasks are blocked by τj, pj is set to its
 	//	nominal priority Pj; otherwise it is set to the highest priority of the tasks blocked
@@ -225,7 +247,7 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 	}
 	else if (pTaskToReleaseResource->pBlockedTaskList->size > 0) {
 		
-		WorkerTask_t* pHighestPrirorityTaskBlockdByTheTask = gll_pop(pTaskToReleaseResource->pBlockedTaskList);
+		WorkerTask_t* pHighestPrirorityTaskBlockdByTheTask = gll_first(pTaskToReleaseResource->pBlockedTaskList);
 
 		pTaskToReleaseResource->uActivePriority = max(pTaskToReleaseResource->uNominalPriority, pHighestPrirorityTaskBlockdByTheTask->uNominalPriority);
 	}
@@ -347,12 +369,13 @@ Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId
 	return NULL;
 }
 
-uint8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
+int8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
 
+	int8_t retVal = -1;
 	uint8_t uActivePriorityOld = pTaskToAquireResource->uActivePriority;
 
 	// TODO: Implement ICPP
-	PIP_BinarySemaphoreTake(pSemaphore, pTaskToAquireResource, pTaskList);
+	retVal = PIP_BinarySemaphoreTake(pSemaphore, pTaskToAquireResource, pTaskList);
 
 	uint8_t uActivePriorityNew = pTaskToAquireResource->uActivePriority;
 
@@ -363,14 +386,17 @@ uint8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAq
 	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
 	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn("");
 
+	return retVal;
+
 }
 
-uint8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
+int8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
 
+	int8_t retVal = -1;
 	// TODO: Print Task <x> released resource <y> and changed its priority from <i> to <j>.
 	uint8_t uActivePriorityOld = pTaskToReleaseResource->uActivePriority;
 	// TODO: Implement ICPP
-	PIP_vBinarySemaphoreGive(pSemaphore, pTaskToReleaseResource);
+	retVal = PIP_vBinarySemaphoreGive(pSemaphore, pTaskToReleaseResource);
 
 	uint8_t uActivePriorityNew = pTaskToReleaseResource->uActivePriority;
 
@@ -378,4 +404,6 @@ uint8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphore, WorkerTask_t* pTaskTo
 	vPrintString(" released resource "); vPrintChar(pSemaphore->uId - 1 + 'A');
 	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
 	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn("");
+
+	return retVal;
 }
