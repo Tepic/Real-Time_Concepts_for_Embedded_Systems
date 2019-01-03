@@ -26,7 +26,7 @@ typedef struct semaphore
 	SemaphoreHandle_t semphHandle;
 	uint8_t uId;
 	uint8_t uPriorityCeiling;
-	uint8_t uAcquiredByTaskNum;
+	uint8_t uLockedByTaskNum;
 	gll_t* pBlockedTaskList;
 } Semaphore_t;
 
@@ -34,7 +34,7 @@ typedef struct semaphore
 int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList);
 int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphoreHandle, WorkerTask_t* pTaskToReleaseResource);
 Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t uId);
-void  Semaphore_vDestroy(Semaphore_t* pSemaphore);
+void Semaphore_vDestroy(Semaphore_t* pSemaphore);
 void Semaphore_vPrint(Semaphore_t*);
 Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId);
 

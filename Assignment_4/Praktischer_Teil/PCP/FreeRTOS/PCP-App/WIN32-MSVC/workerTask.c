@@ -22,9 +22,10 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	pWorkerTask->uNominalPriority = nominalPriority;
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
 	pWorkerTask->uTaskNumber = uTaskNumber;
-	pWorkerTask->uPriorityWhenItAcquiredResource = WORKER_TASK_NONE_PRIORITY;
 	pWorkerTask->uPeriod = uPeriod;
 	pWorkerTask->uReleaseTime = uReleaseTime;
+
+	pWorkerTask->isReleased = false;
 
 	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
 
@@ -87,7 +88,6 @@ void WorkerTask_vPrint(WorkerTask_t* task) {
 	vPrintString("WorkerTask_t: [uTaskNumber: "); vPrintInteger(task->uTaskNumber);
 	vPrintString(", uNominalPriority: "); vPrintInteger(task->uNominalPriority);
 	vPrintString(", uActivePriority: "); vPrintInteger(task->uActivePriority);
-	vPrintString(", uPriorityWhenItAcquiredResource: "); vPrintInteger(task->uPriorityWhenItAcquiredResource);
 	vPrintString(", uReleaseTime: "); vPrintInteger(task->uReleaseTime);
 	vPrintString(", uPeriod: "); vPrintInteger(task->uPeriod); vPrintStringLn("]");
 }

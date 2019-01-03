@@ -34,7 +34,7 @@ Semaphore_t* Semaphore_Create(uint8_t uPriorityCeiling, const uint8_t uId) {
 
 	pSemaphore->uPriorityCeiling = uPriorityCeiling;
 	pSemaphore->uId = uId;
-	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	pSemaphore->uLockedByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 
 	return pSemaphore;
 }
@@ -122,7 +122,7 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAqu
 	}
 
 	// Since lock request is successful, update semaphore's info; semaphore is now locked by the requesting task
-	pSemaphore->uAcquiredByTaskNum = pTaskToAquireResource->uTaskNumber;
+	pSemaphore->uLockedByTaskNum = pTaskToAquireResource->uTaskNumber;
 	
 #if DEBUG
 	vPrintString("Task "); vPrintInteger(pTaskToAquireResource->uTaskNumber);
@@ -156,7 +156,7 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 		return SEMAPHORE_NOK;
 	}
 
-	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+	pSemaphore->uLockedByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 
 	// the highest-priority task blocked on that semaphore, if any, is awakened.
 	if (pSemaphore->pBlockedTaskList != NULL &&
@@ -231,14 +231,14 @@ int8_t iCheckIfSemaphoreAcquired(WorkerTask_t* pTaskRequestingResource, Semaphor
 		return SEMAPHORE_NOK;
 	}
 
-	if (pSemaphore->uAcquiredByTaskNum == pTaskRequestingResource->uTaskNumber) {
+	if (pSemaphore->uLockedByTaskNum == pTaskRequestingResource->uTaskNumber) {
 #if DEBUG
 		vPrintString("Task "); vPrintInteger(pTaskRequestingResource->uTaskNumber); vPrintStringLn(" has already locked by this binary semaphore. Cannot lock it twice!");
 #endif
 		return SEMAPHORE_ALREADY_LOCKED_BY_REQUESTING_TASK;
 	}
 
-	if (pSemaphore->uAcquiredByTaskNum == SEMAPHORE_AQUIRED_BY_NONE) {
+	if (pSemaphore->uLockedByTaskNum == SEMAPHORE_AQUIRED_BY_NONE) {
 		return SEMAPHORE_FREE; 
 	}
 
@@ -255,7 +255,7 @@ void PIP_vInheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList) {
 		return;
 	}
 
-	WorkerTask_t* pBlockingTask = gll_get(pTaskList, pSemaphore->uAcquiredByTaskNum);
+	WorkerTask_t* pBlockingTask = gll_get(pTaskList, pSemaphore->uLockedByTaskNum);
 	WorkerTask_t* pBlockedTaskWithMaxPriority = gll_get(pSemaphore->pBlockedTaskList, 0);
 
 	// We need to inherit only priority if we are lower priority task
@@ -276,7 +276,7 @@ void Semaphore_vPrint(Semaphore_t* semaphore) {
 
 	vPrintString("Semaphore_t: [uId: "); vPrintInteger(semaphore->uId);
 	vPrintString(", uPriorityCeiling: "); vPrintInteger(semaphore->uPriorityCeiling);
-	vPrintString(", uAcquiredByTaskNum: "); vPrintInteger(semaphore->uAcquiredByTaskNum); vPrintStringLn("]");
+	vPrintString(", uLockedByTaskNum: "); vPrintInteger(semaphore->uLockedByTaskNum); vPrintStringLn("]");
 }
 
 Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId) {

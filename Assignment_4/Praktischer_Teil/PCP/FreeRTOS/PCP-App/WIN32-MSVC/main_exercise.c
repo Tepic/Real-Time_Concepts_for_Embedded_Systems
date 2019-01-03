@@ -138,21 +138,50 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 		return;
 	}
 
+	uint32_t uCurrentTickCount = 0;
 	gll_t* pTaskList = (gll_t*) pvParameters;
 
 	WorkerTask_t* pWorkerTask = NULL;
 	while (true) {
 		
-		for (uint8_t uIndex = 0; ++uIndex < pTaskList->size; uIndex++) {
+		//vPrintString("Current tick time: "); vPrintInteger(uCurrentTickCount); vPrintString("\n");
+
+		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++) {
 
 			pWorkerTask = gll_get(pTaskList, uIndex);
-			if (pWorkerTask != NULL && 
-				(pWorkerTask->uReleaseTime % pWorkerTask->uPeriod) == 0) {
 
+			if (pWorkerTask == NULL) {
+				// TODO: Handle Error ?
+				break;
+			}
+
+			if (!pWorkerTask->isReleased &&
+				(pWorkerTask->uReleaseTime == uCurrentTickCount) ){
+
+				pWorkerTask->isReleased = true;
+				vTaskResume(pWorkerTask->xHandle);
+#if IS_SCHEDULER_RUNNING
+				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", uCurrentTickCount);
+				}
+#endif 
+			}
+			else if (pWorkerTask->isReleased &&
+					 ( uCurrentTickCount % (pWorkerTask->uReleaseTime + pWorkerTask->uPeriod) ) == 0) {
+#if IS_SCHEDULER_RUNNING
+				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", uCurrentTickCount);
+				}
+#endif 
 				vTaskResume(pWorkerTask->xHandle);
 			}
+			else {
+				// TODO: Handle Error ?
+			}
+
 		}
 
+		uCurrentTickCount++;
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 }
@@ -321,7 +350,6 @@ void vInitialize(
 	pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 10, semaphoreList_task_4);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
-	gll_pushBack(global_taskList, NULL);
 	gll_pushBack(global_taskList, pTask_1);
 	gll_pushBack(global_taskList, pTask_2);
 	gll_pushBack(global_taskList, pTask_3);
