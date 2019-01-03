@@ -1067,30 +1067,49 @@ void vTast_TestAddList() {
 	uint8_t d = 4;
 	uint8_t data_1, data_2, data_3, data_4, data_5, data_6;
 
-	//gll_add(integerList, &a, 0); 
-	//gll_add(integerList, &b, 0);
-	//gll_add(integerList, &c, 0);
-	//gll_add(integerList, &d, 0);
+	gll_add(integerList, &a, 0); 
+	gll_add(integerList, &b, 1);
+	gll_add(integerList, &c, 1);
+	gll_add(integerList, &d, 1);
 
 	vPrintStringLn("Before Calling 'vTest_ListAddDescending' list has following content:");
 	vTast_PrintList(integerList);
 
-	data_1 = 5;
-	vTest_ListAddDescending(integerList, &data_1);
-	data_2 = 2;
-	vTest_ListAddDescending(integerList, &data_2);
-	data_3 = 3;
-	vTest_ListAddDescending(integerList, &data_3);
-	data_4 = 3;
-	vTest_ListAddDescending(integerList, &data_4);
-	data_5 = 1;
-	vTest_ListAddDescending(integerList, &data_5);
-	data_6 = 6;
-	vTest_ListAddDescending(integerList, &data_6);
-
 	vPrintStringLn("After Calling 'vTest_ListAddDescending' list has following content:");
 	vTast_PrintList(integerList);
 }
+
+void vTest_TestAddingToTheList(gll_t* pTaskList) {
+
+	WorkerTask_t* pTask_1 = gll_get(pTaskList, 0);
+	WorkerTask_t* pTask_1_1 = WorkerTask_Create(999, 1, 5, 2, 3, 999);
+	WorkerTask_t* pTask_1_2 = WorkerTask_Create(999, 1, 5, 2, 3, 999);
+
+	WorkerTask_t* pTask_2 = gll_get(pTaskList, 1); 
+	WorkerTask_t* pTask_2_1 = WorkerTask_Create(999, 2, 4, 2, 3, 999);
+	WorkerTask_t* pTask_2_2 = WorkerTask_Create(999, 2, 4, 2, 3, 999);
+
+	WorkerTask_t* pTask_3 = gll_get(pTaskList, 2);
+	WorkerTask_t* pTask_4 = gll_get(pTaskList, 3);
+
+	gll_t* pTaskListUnderTest = gll_init();
+
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_4);
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_3);
+
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_2);
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_2_1);
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_2_2);
+
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_1);
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_1_1);
+	WorkerTask_vListAddTaskDescendingPriorityOrder(pTaskListUnderTest, pTask_1_2);
+	
+
+	WorkerTask_vListPrintPriority(pTaskListUnderTest);
+}
+
+
 
 void vTest(TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
@@ -1145,8 +1164,9 @@ void vTest(TaskFunction_t taskHandler_1,
 	//vTest_WhenTaskReleasesAllAcquiredSemaphoresThenTaskShouldHaveNominalPriority(semaphoreList, taskList);
 	//vTest_WhenTaskAcquiresSemaphorsThenAllOtherTasksAcquiringThatSemaphoreShouldBeBlocked(semaphoreList, taskList);
 	//vTest_WhenSemaphoreIsReleasedThenReleasingTaskGetsMaximumPriorityOfAllBlockedTasks(semaphoreList, taskList);
-	vTest_TestQuestionPIP(semaphoreList, taskList);
+	//vTest_TestQuestionPIP(semaphoreList, taskList);
 	//vTast_TestAddList();
+	vTest_TestAddingToTheList(taskList);
 
 	WorkerTask_vDestroy(pTask_1);
 	WorkerTask_vDestroy(pTask_2);

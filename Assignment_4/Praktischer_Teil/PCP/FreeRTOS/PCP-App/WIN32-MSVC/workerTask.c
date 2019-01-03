@@ -18,7 +18,9 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
 
+	pWorkerTask->pBlockedTaskList = gll_init();
 	pWorkerTask->pUsedSemaphoreList = pUsedSemaphoreList;
+
 	pWorkerTask->uNominalPriority = nominalPriority;
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
 	pWorkerTask->uTaskNumber = uTaskNumber;
@@ -34,12 +36,14 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 
 void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask) {
 
+	free(pWorkerTask->pBlockedTaskList);
 	free(pWorkerTask);
 }
 
 // Insert task to appropriate index inside the list of blocked tasks
 // The blocked tasks ask are sorted in descending order w.r.t. priorities
 // E.g. the blocked task with lowest priority should be at the end of the list
+// Same task priorities are added in FIFO order
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
 
 	if (pTaskList == NULL || pTaskToInsertIntoTheList == NULL) {
@@ -54,14 +58,29 @@ void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask
 		return;
 	}
 
+	uint8_t uPriority = pTaskToInsertIntoTheList->uActivePriority;
 	for (uint8_t index = 0; index < pTaskList->size; ++index) {
 
-		WorkerTask_t* pListTask = (WorkerTask_t*) gll_get(pTaskList, index);
-		uint8_t uListData = pListTask->uActivePriority;
-		uint8_t uData = pTaskToInsertIntoTheList->uActivePriority;
+		WorkerTask_t* pTask = (WorkerTask_t*) gll_get(pTaskList, index);
+		uint8_t uListPriority = pTask->uActivePriority;
 
-		if (uData >= uListData) {
-			gll_add(pTaskList, pTaskToInsertIntoTheList, index);
+		if (uPriority >= uListPriority) {
+
+			// For same priorities add in FIFO order
+			uint8_t uInnerIndex = index;
+			for (; uInnerIndex < pTaskList->size; ++uInnerIndex) {
+
+				pTask = (WorkerTask_t*)gll_get(pTaskList, uInnerIndex);
+				uListPriority = pTask->uActivePriority;
+
+				if (uPriority > uListPriority) {
+					// Add to the last element with the same priority
+					gll_add(pTaskList, pTaskToInsertIntoTheList, uInnerIndex);
+					return;
+				}	
+			}
+
+			gll_add(pTaskList, pTaskToInsertIntoTheList, uInnerIndex);
 			return;
 		}
 	}

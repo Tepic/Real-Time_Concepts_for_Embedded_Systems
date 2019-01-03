@@ -4,8 +4,8 @@
 
 #include "bool_t.h"
 
-#define DEBUG false
-#define TEST false
-#define IS_SCHEDULER_RUNNING true
+#define DEBUG true
+#define TEST true
+#define IS_SCHEDULER_RUNNING false
 
 #endif DEBUG_H__

@@ -25,6 +25,7 @@ typedef struct workerTask
 	uint8_t uPeriod;
 	bool_t isReleased;
 	gll_t* pUsedSemaphoreList;
+	gll_t* pBlockedTaskList; // List of blocked tasks on this task
 
 } WorkerTask_t;
 

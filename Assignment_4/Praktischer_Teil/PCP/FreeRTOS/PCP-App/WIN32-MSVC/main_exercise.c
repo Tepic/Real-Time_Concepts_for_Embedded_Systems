@@ -96,7 +96,7 @@ void vInitialize(TaskFunction_t schedulerHandler,
 	WorkerTask_t* pTask_4);
 
 /*-----------------------------------------------------------*/
-
+#define max(x,y) ((x) >= (y)) ? (x) : (y)
 void main_exercise( void )
 {
 	// TODO: Still have to do ICPP 
@@ -168,12 +168,13 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 			}
 			else if (pWorkerTask->isReleased &&
 					 ( uCurrentTickCount % (pWorkerTask->uReleaseTime + pWorkerTask->uPeriod) ) == 0) {
+
+				vTaskResume(pWorkerTask->xHandle);
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
 					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", uCurrentTickCount);
 				}
 #endif 
-				vTaskResume(pWorkerTask->xHandle);
 			}
 			else {
 				// TODO: Handle Error ?
