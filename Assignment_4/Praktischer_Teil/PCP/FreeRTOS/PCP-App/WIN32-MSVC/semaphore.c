@@ -105,7 +105,7 @@ int8_t PIP_BinarySemaphoreTake(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAqu
 		WorkerTask_vListAddTaskDescendingPriorityOrder(pSemaphore->pBlockedTaskList, pTaskToAquireResource);
 
 #if DEBUG
-		printf("%s%d%s%d%s%d%s\n", "Task ", pTaskToAquireResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId, " and task ", pTaskToAquireResource->uTaskNumber," gets blocked!");
+		printf("%s%d%s%c%s%d%s\n", "Task ", pTaskToAquireResource->uTaskNumber, " failed to acquire semaphore ", pSemaphore->uId - 1 + 'A', " and task ", pTaskToAquireResource->uTaskNumber," gets blocked!");
 #endif
 		// Transmit its active priority to the task that holds the semaphore
 		PIP_vInheritPriority(pSemaphore, pTaskList);
@@ -148,21 +148,22 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 
 	// Current task blocked on a semaphore is activated on unlock
 	// Check if the semaphore was obtained
-	if (xSemaphoreGive(pSemaphore->semphHandle) != pdTRUE) {
+	if (xSemaphoreGive(pSemaphore->semphHandle) != pdTRUE) { // When task τ_j exits a critical section, it unlocks the semaphore
 #if DEBUG
-		vPrintStringLn("Error in function 'PIP_vBinarySemaphoreGive'. NULL Pointer");
+		vPrintStringLn("Error in function 'PIP_vBinarySemaphoreGive'. Failed to unlock the semaphore");
 #endif
 		// The semaphore was not obtained
 		return SEMAPHORE_NOK;
 	}
 
-	/* When task τj exits a critical section, it unlocks the semaphore, and the highest-priority
-	task blocked on that semaphore, if any, is awakened. */
-	// Check if there is any task blocked on the semaphore
+	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
+
+	// the highest-priority task blocked on that semaphore, if any, is awakened.
 	if (pSemaphore->pBlockedTaskList != NULL &&
-		pSemaphore->pBlockedTaskList->size > 0) {
+		pSemaphore->pBlockedTaskList->size > 0) { // Check if there is any task blocked on the semaphore
 
 		WorkerTask_t* pBlockedTaskWithHighestPriority = NULL;
+
 		// Pop up first element from the list, because it's the highest priority task
 		// List is sorted with the descending order w.r.t. to its priority
 		pBlockedTaskWithHighestPriority = gll_pop(pSemaphore->pBlockedTaskList);
@@ -171,24 +172,28 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 			return SEMAPHORE_NOK;
 		}
 
-		// The highest-priority task blocked on that semaphore is awakened
+#if DEBUG
+		vPrintString("Resource "); vPrintChar(pSemaphore->uId - 1 + 'A');  vPrintStringLn(" gets released");
+#endif
+
+		// Avoid 'inversion' of priorities
+		// Avoid task with higher priority 'inheriting' priority of the lower priority task
+		if (pTaskToReleaseResource->uNominalPriority > pBlockedTaskWithHighestPriority->uNominalPriority) {
+			return SEMAPHORE_OK;
+		}
+
 #if IS_SCHEDULER_RUNNING
+		// The highest-priority task blocked on that semaphore is awakened
 		vTaskResume(pBlockedTaskWithHighestPriority->xHandle);
 #endif
 	}
-
-#if DEBUG
-	vPrintString("Resource "); vPrintInteger(pSemaphore->uId); vPrintStringLn(" gets released");
-#endif
-
-	pSemaphore->uAcquiredByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 
 	return PIP_iUpdatePriority(pSemaphore, pTaskToReleaseResource);
 }
 
 int8_t PIP_iUpdatePriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToReleaseResource) {
 
-	if (pTaskToReleaseResource== NULL || pSemaphore->pBlockedTaskList == NULL || pSemaphore == NULL) {
+	if (pTaskToReleaseResource == NULL || pSemaphore->pBlockedTaskList == NULL || pSemaphore == NULL) {
 #if DEBUG
 		vPrintStringLn("Error in function 'PIP_iDecreasePriority'. NULL Pointer");
 #endif
@@ -199,20 +204,22 @@ int8_t PIP_iUpdatePriority(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRelease
 	if ( pSemaphore->pBlockedTaskList->size == 0 ) {
 		// if no other tasks are blocked by the task, task's active priority is set to its nominal priority
 		WorkerTask_vResetActivePriorityToNominalPriority(pTaskToReleaseResource);
+		return SEMAPHORE_OK;
 	}
 
 	// otherwise task's priority is set to the highest priority of the tasks blocked by pTaskToReleaseResource
 	WorkerTask_t* pBlockedTaskWithHighestPriority =  gll_first(pSemaphore->pBlockedTaskList);
-	if (pBlockedTaskWithHighestPriority == NULL) {
+	if (pBlockedTaskWithHighestPriority == NULL) { 
 #if DEBUG
 		vPrintStringLn("Error in function 'PIP_iDecreasePriority'. NULL Pointer");
 #endif
+		return SEMAPHORE_NOK;
 	}
 
 	// Set priority of the tasks the releases the semaphorre to the highest priority of the tasks blocked by it (pTaskToReleaseResource)
 	pTaskToReleaseResource->uActivePriority = pBlockedTaskWithHighestPriority->uActivePriority;
 
-	SEMAPHORE_OK;
+	return SEMAPHORE_OK;
 }
 
 int8_t iCheckIfSemaphoreAcquired(WorkerTask_t* pTaskRequestingResource, Semaphore_t* pSemaphore) {
