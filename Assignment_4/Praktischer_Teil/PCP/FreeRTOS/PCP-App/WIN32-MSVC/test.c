@@ -391,6 +391,16 @@ void vTest_WhenSemaphoreIsReleasedThenReleasingTaskGetsMaximumPriorityOfAllBlock
 		return;
 	}
 
+	/* The Blocking Task locks Semaphore A */
+	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");
+	vPrintChar(pSemaphore_A->uId - 1 + '0'); vPrintStringLn("");
+
+	retVal = PIP_BinarySemaphoreTake(pSemaphore_A, blockingTask, taskList);
+	if (retVal != 0) {
+		assert();
+		return;
+	}
+
 	/* The Blocking Task locks Semaphore B */
 	vPrintString("\nThe BLOCKING Task #"); vPrintInteger(blockingTask->uTaskNumber); vPrintString(" acquirying the semaphore ");  
 	vPrintChar(pSemaphore_B->uId - 1 + '0'); vPrintStringLn("");

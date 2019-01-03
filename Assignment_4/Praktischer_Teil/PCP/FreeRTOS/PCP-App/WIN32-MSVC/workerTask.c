@@ -36,6 +36,9 @@ void  WorkerTask_vDestroy(WorkerTask_t* pWorkerTask) {
 	free(pWorkerTask);
 }
 
+// Insert task to appropriate index inside the list of blocked tasks
+// The blocked tasks ask are sorted in descending order w.r.t. priorities
+// E.g. the blocked task with lowest priority should be at the end of the list
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pTaskToInsertIntoTheList) {
 
 	if (pTaskList == NULL || pTaskToInsertIntoTheList == NULL) {
