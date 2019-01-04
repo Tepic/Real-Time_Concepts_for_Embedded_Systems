@@ -65,7 +65,7 @@
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
 #define TASK_SCHEDULER_PRIORITY 6
-#define TASK_SCHEDULER_TICK_TIME 2
+#define TASK_SCHEDULER_TICK_TIME 10
 
 /* TODO: output frequencey
 */
@@ -138,7 +138,7 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 	}
 
 	static uint32_t sCurrentTickCount = 0;
-
+	UBaseType_t uTaskPriority = 0;
 	gll_t* pTaskList = (gll_t*) pvParameters;
 
 	WorkerTask_t* pWorkerTask = NULL;
@@ -149,6 +149,7 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++) {
 
 			pWorkerTask = gll_get(pTaskList, uIndex);
+			uTaskPriority = uxTaskPriorityGet(pWorkerTask->xHandle);
 
 			if (!pWorkerTask->isReleased &&
 				(pWorkerTask->uReleaseTime == sCurrentTickCount) ){
@@ -157,7 +158,8 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 				vTaskResume(pWorkerTask->xHandle);
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", sCurrentTickCount);
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(sCurrentTickCount); 
+					vPrintString(", with priority: "); vPrintUnsignedInteger(uTaskPriority);  vPrintStringLn("");
 				}
 #endif 
 			}
@@ -167,7 +169,8 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 				vTaskResume(pWorkerTask->xHandle);
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); printf("%d\n", sCurrentTickCount);
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(sCurrentTickCount); 
+					vPrintString(", with priority: "); vPrintUnsignedInteger(uTaskPriority);  vPrintStringLn("");
 				}
 #endif 
 			}

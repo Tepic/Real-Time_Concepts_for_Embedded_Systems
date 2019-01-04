@@ -11,7 +11,8 @@
 
 static void vPrintStringLn(const char *pcString);
 static void vPrintString(const char *pcString);
-static void vPrintInteger(int8_t intVal);
+static void vPrintInteger(int32_t intVal);
+static void vPrintUnsignedInteger(uint32_t intVal);
 static void vPrintChar(char charVal);
 
 void vPrintStringLn(const char *pcString)
@@ -31,6 +32,16 @@ void vPrintInteger(int8_t intVal)
 	taskENTER_CRITICAL();
 	{
 		printf("%d", intVal);
+		fflush(stdout);
+	}
+	taskEXIT_CRITICAL();
+}
+
+
+void vPrintUnsignedInteger(uint32_t usVal) {
+	taskENTER_CRITICAL();
+	{
+		printf("%u", usVal);
 		fflush(stdout);
 	}
 	taskEXIT_CRITICAL();

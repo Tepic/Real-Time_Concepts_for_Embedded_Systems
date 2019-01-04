@@ -245,17 +245,19 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 	// Update Priority
 	if (pTaskToReleaseResource->pBlockedTaskList->size == 0) {
 		pTaskToReleaseResource->uActivePriority = pTaskToReleaseResource->uNominalPriority;
-	
+		
 	}
 	else if (pTaskToReleaseResource->pBlockedTaskList->size > 0) {
 		
 		WorkerTask_t* pHighestPrirorityTaskBlockdByTheTask = gll_first(pTaskToReleaseResource->pBlockedTaskList);
 
 		pTaskToReleaseResource->uActivePriority = max(pTaskToReleaseResource->uNominalPriority, pHighestPrirorityTaskBlockdByTheTask->uNominalPriority);
-#if IS_SCHEDULER_RUNNING
-		vTaskPrioritySet(pTaskToReleaseResource->xHandle, pTaskToReleaseResource->uActivePriority);
-#endif
+
 	}
+
+#if IS_SCHEDULER_RUNNING
+	vTaskPrioritySet(pTaskToReleaseResource->xHandle, pTaskToReleaseResource->uActivePriority);
+#endif	
 
 	pSemaphore->uLockedByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
 #if DEBUG

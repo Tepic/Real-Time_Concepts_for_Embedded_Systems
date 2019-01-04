@@ -21,6 +21,7 @@
 #define SEMAPHORE_PRIORITY_CEILING_NONE 0
 
 #define IMMEDIATE_CEILING_PRIORITY_PROTOCOL 1
+#define PRIORITY_INHERITANCE_PROTOCOL 0
 
 /* Variable declarations */
 typedef struct semaphore
