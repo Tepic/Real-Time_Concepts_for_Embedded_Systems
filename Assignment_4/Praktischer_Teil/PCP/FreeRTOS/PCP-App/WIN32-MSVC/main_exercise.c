@@ -65,7 +65,7 @@
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
 #define TASK_SCHEDULER_PRIORITY 6
-#define TASK_SCHEDULER_TICK_TIME 10
+#define TASK_SCHEDULER_TICK_TIME 2
 
 /* TODO: output frequencey
 */
@@ -89,28 +89,18 @@ void vInitialize(TaskFunction_t schedulerHandler,
 	TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
 	TaskFunction_t taskHandler_3,
-	TaskFunction_t taskHandler_4,
-	WorkerTask_t* pTask_1,
-	WorkerTask_t* pTask_2,
-	WorkerTask_t* pTask_3,
-	WorkerTask_t* pTask_4);
+	TaskFunction_t taskHandler_4);
 
 /*-----------------------------------------------------------*/
 #define max(x,y) ((x) >= (y)) ? (x) : (y)
 void main_exercise( void )
 {
-	// TODO: Still have to do ICPP 
-	WorkerTask_t* pTask_1 = NULL;
-	WorkerTask_t* pTask_2 = NULL;
-	WorkerTask_t* pTask_3 = NULL;
-	WorkerTask_t* pTask_4 = NULL;
-
 	vPrintStringLn("Starting the application...");
 
 #if TEST
 	vTest(prvTask1, prvTask2, prvTask3, prvTask4);
 #elif IS_SCHEDULER_RUNNING
-	vInitialize(prvTaskSchedulerHandler, prvTask1, prvTask2, prvTask3, prvTask4, pTask_1, pTask_2, pTask_3, pTask_4);
+	vInitialize(prvTaskSchedulerHandler, prvTask1, prvTask2, prvTask3, prvTask4);
 	vTaskStartScheduler();
 #endif
 	
@@ -128,7 +118,7 @@ uint32_t ulUselessVariable = 0;
 	}
 }
 
-// TODO
+// Task Scheduler Process
 void prvTaskSchedulerHandler(void *pvParameters) {
 	if (pvParameters == NULL) {
 #if DEBUG
@@ -137,11 +127,10 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 		return;
 	}
 
-	static uint32_t sCurrentTickCount = 0;
-	UBaseType_t uTaskPriority = 0;
+	uint32_t uCurrentTickCount = 0;
 	gll_t* pTaskList = (gll_t*) pvParameters;
-
 	WorkerTask_t* pWorkerTask = NULL;
+
 	while (true) {
 #if DEBUG
 		vPrintString("Current tick time: "); vPrintInteger(sCurrentTickCount); vPrintString("\n");
@@ -149,34 +138,24 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++) {
 
 			pWorkerTask = gll_get(pTaskList, uIndex);
-			uTaskPriority = uxTaskPriorityGet(pWorkerTask->xHandle);
 
-			if (!pWorkerTask->isReleased &&
-				(pWorkerTask->uReleaseTime == sCurrentTickCount) ){
-
-				pWorkerTask->isReleased = true;
+			if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) && // Check if the task is released 
+				((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod))) { // and Check if the current time is the next period the task 
+				
+				// Dispatch the ready task
 				vTaskResume(pWorkerTask->xHandle);
+
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(sCurrentTickCount); 
-					vPrintString(", with priority: "); vPrintUnsignedInteger(uTaskPriority);  vPrintStringLn("");
+					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(uCurrentTickCount);
+					vPrintString(", with priority: "); vPrintUnsignedInteger(uxTaskPriorityGet(pWorkerTask->xHandle));  vPrintStringLn("");
 				}
 #endif 
 			}
-			else if (pWorkerTask->isReleased &&
-					 (sCurrentTickCount % (pWorkerTask->uReleaseTime + pWorkerTask->uPeriod) ) == 0) {
 
-				vTaskResume(pWorkerTask->xHandle);
-#if IS_SCHEDULER_RUNNING
-				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(sCurrentTickCount); 
-					vPrintString(", with priority: "); vPrintUnsignedInteger(uTaskPriority);  vPrintStringLn("");
-				}
-#endif 
-			}
 		}
 
-		sCurrentTickCount++;
+		uCurrentTickCount++;
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 }
@@ -191,7 +170,6 @@ static void prvTask1(void *pvParameters)
 	}
 
 	WorkerTask_t* workerTask_1 = (WorkerTask_t*)pvParameters;
-
 	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 2
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_1->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 	
@@ -222,7 +200,6 @@ static void prvTask2(void *pvParameters)
 	}
 
 	WorkerTask_t* workerTask_2 = (WorkerTask_t*)pvParameters;
-
 	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 1); // Semaphore B ID = 1
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(workerTask_2->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 
@@ -253,7 +230,6 @@ static void prvTask3(void *pvParameters)
 	}
 
 	WorkerTask_t* workerTask_3 = (WorkerTask_t*)pvParameters;
-
 	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_3->pUsedSemaphoreList, 1); // Semaphore A ID = 1
 	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_3->pUsedSemaphoreList, 2); // Semaphore B ID = 2
 
@@ -284,7 +260,6 @@ static void prvTask4(void *pvParameters)
 	}
 
 	WorkerTask_t* workerTask_4 = (WorkerTask_t*)pvParameters;
-
 	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(workerTask_4->pUsedSemaphoreList, 1); // Semaphore A ID = 1
 	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(workerTask_4->pUsedSemaphoreList, 2); // Semaphore B ID = 2
 
@@ -310,11 +285,12 @@ void vInitialize(
 	TaskFunction_t taskHandler_1,
 	TaskFunction_t taskHandler_2,
 	TaskFunction_t taskHandler_3,
-	TaskFunction_t taskHandler_4, 
-	WorkerTask_t* pTask_1,
-	WorkerTask_t* pTask_2,
-	WorkerTask_t* pTask_3,
-	WorkerTask_t* pTask_4) {
+	TaskFunction_t taskHandler_4) {
+
+	WorkerTask_t* pTask_1 = NULL;
+	WorkerTask_t* pTask_2 = NULL;
+	WorkerTask_t* pTask_3 = NULL;
+	WorkerTask_t* pTask_4 = NULL;
 
 	global_taskList = gll_init();
 	gll_t* semaphoreList = gll_init();
