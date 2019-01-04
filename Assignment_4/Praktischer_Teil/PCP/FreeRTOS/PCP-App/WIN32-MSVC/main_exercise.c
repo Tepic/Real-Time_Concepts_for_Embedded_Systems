@@ -128,7 +128,6 @@ uint32_t ulUselessVariable = 0;
 	}
 }
 
-
 // TODO
 void prvTaskSchedulerHandler(void *pvParameters) {
 	if (pvParameters == NULL) {

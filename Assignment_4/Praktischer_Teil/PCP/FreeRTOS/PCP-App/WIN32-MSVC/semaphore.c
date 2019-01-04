@@ -121,7 +121,9 @@ void vTransmitActivePriority(WorkerTask_t* pBlockingTask) {
 	}
 
 	pBlockingTask->uActivePriority = max(pBlockingTask->uNominalPriority, pBlockedTaskWithHighestPriority->uNominalPriority);
-
+#if IS_SCHEDULER_RUNNING
+	vTaskPrioritySet(pBlockingTask->xHandle, pBlockingTask->uActivePriority );
+#endif
 }
 
 
@@ -250,6 +252,9 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 		WorkerTask_t* pHighestPrirorityTaskBlockdByTheTask = gll_first(pTaskToReleaseResource->pBlockedTaskList);
 
 		pTaskToReleaseResource->uActivePriority = max(pTaskToReleaseResource->uNominalPriority, pHighestPrirorityTaskBlockdByTheTask->uNominalPriority);
+#if IS_SCHEDULER_RUNNING
+		vTaskPrioritySet(pTaskToReleaseResource->xHandle, pTaskToReleaseResource->uActivePriority);
+#endif
 	}
 
 	pSemaphore->uLockedByTaskNum = SEMAPHORE_AQUIRED_BY_NONE;
@@ -331,6 +336,10 @@ void PIP_vInheritPriority(Semaphore_t* pSemaphore, gll_t* pTaskList) {
 	if (pBlockingTask->uActivePriority < pBlockedTaskWithMaxPriority->uActivePriority) {
 		// Inherit priority maximum of all priorities of tasks blocked on the semaphore
 		pBlockingTask->uActivePriority = pBlockedTaskWithMaxPriority->uActivePriority;
+
+#if IS_SCHEDULER_RUNNING
+		vTaskPrioritySet(pBlockingTask->xHandle, pBlockingTask->uActivePriority);
+#endif
 	}
 
 }
@@ -372,21 +381,30 @@ Semaphore_t* Semaphore_sList_GetSemaphoreById(gll_t* pSemaphoreList, uint8_t uId
 int8_t usPrioritySemaphoreWait(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToAquireResource, gll_t* pTaskList) {
 
 	int8_t retVal = -1;
-	uint8_t uActivePriorityOld = pTaskToAquireResource->uActivePriority;
 
-	// TODO: Implement ICPP
 	retVal = PIP_BinarySemaphoreTake(pSemaphore, pTaskToAquireResource, pTaskList);
 
+#if IMMEDIATE_CEILING_PRIORITY_PROTOCOL && IS_SCHEDULER_RUNNING
+	if (retVal == SEMAPHORE_OK) {
+		// Promote clause. As soon as a task T obtains a lock R, its priority is changed dynamically
+		// to the maximum of its current priority and ceil(R). When T exits a critical section, it
+		// resumes the priority it had at the point of entry into the critical section.
+		
+		uint8_t uMaximumPriority = max(pSemaphore->uPriorityCeiling, pTaskToAquireResource->uActivePriority);
+
+		vPrintString("Task "); vPrintInteger(pTaskToAquireResource->uTaskNumber);
+		vPrintString(" acquired resource ");
+		vPrintChar(pSemaphore->uId + 'A' - 1);
+		vPrintString(" and changed its priority from "); vPrintInteger(pTaskToAquireResource->uActivePriority);
+		vPrintString(" to "); vPrintInteger(uMaximumPriority); vPrintStringLn(".");
+
+		pTaskToAquireResource->uActivePriority = uMaximumPriority;
+
+		vTaskPrioritySet(pTaskToAquireResource->xHandle, uMaximumPriority);
+	}
+#endif
 	uint8_t uActivePriorityNew = pTaskToAquireResource->uActivePriority;
 
-	// TODO: Print Task <x> acquired resource <y> and changed its priority from <i> to <j>.
-#if IS_SCHEDULER_RUNNING
-	vPrintString("Task "); vPrintInteger(pTaskToAquireResource->uTaskNumber);
-	vPrintString(" acquired resource ");
-	vPrintChar(pSemaphore->uId + 'A' - 1);
-	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
-	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn(".");
-#endif
 	return retVal;
 
 }
@@ -399,13 +417,11 @@ int8_t usPrioritySemaphoreSignal(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToR
 	// TODO: Implement ICPP
 	retVal = PIP_vBinarySemaphoreGive(pSemaphore, pTaskToReleaseResource);
 
-	uint8_t uActivePriorityNew = pTaskToReleaseResource->uActivePriority;
-
-#if IS_SCHEDULER_RUNNING
+#if IMMEDIATE_CEILING_PRIORITY_PROTOCOL && IS_SCHEDULER_RUNNING
 	vPrintString("Task "); vPrintInteger(pTaskToReleaseResource->uTaskNumber);
 	vPrintString(" released resource "); vPrintChar(pSemaphore->uId - 1 + 'A');
 	vPrintString(" and changed its priority from "); vPrintInteger(uActivePriorityOld);
-	vPrintString(" to "); vPrintInteger(uActivePriorityNew); vPrintStringLn(".");
+	vPrintString(" to "); vPrintInteger(pTaskToReleaseResource->uActivePriority); vPrintStringLn(".");
 #endif
 	return retVal;
 }

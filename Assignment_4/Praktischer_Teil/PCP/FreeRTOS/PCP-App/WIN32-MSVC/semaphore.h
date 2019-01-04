@@ -20,6 +20,8 @@
 #define SEMAPHORE_AQUIRED_BY_NONE 0
 #define SEMAPHORE_PRIORITY_CEILING_NONE 0
 
+#define IMMEDIATE_CEILING_PRIORITY_PROTOCOL 1
+
 /* Variable declarations */
 typedef struct semaphore
 {
