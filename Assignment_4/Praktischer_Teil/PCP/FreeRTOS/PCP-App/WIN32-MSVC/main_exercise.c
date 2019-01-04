@@ -55,7 +55,7 @@
 #include "workerTask.h"
 #include "print.h"
 #include "semaphore.h"
-#include "debug.h"
+#include "config.h"
 
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
@@ -65,7 +65,7 @@
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
 #define TASK_SCHEDULER_PRIORITY 6
-#define TASK_SCHEDULER_TICK_TIME 2
+#define TASK_SCHEDULER_TICK_TIME 3
 
 /* TODO: output frequencey
 */
@@ -141,10 +141,17 @@ void prvTaskSchedulerHandler(void *pvParameters) {
 
 			if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) && // Check if the task is released 
 				((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod))) { // and Check if the current time is the next period the task 
-				
+				/*
+				eTaskState currentTaskState = eTaskGetState(pWorkerTask->xHandle);
+
+				if (currentTaskState != eRunning)
+				{
+					// Dispatch the ready task
+					vTaskResume(pWorkerTask->xHandle);
+				} */
+
 				// Dispatch the ready task
 				vTaskResume(pWorkerTask->xHandle);
-
 #if IS_SCHEDULER_RUNNING
 				if (eTaskGetState(pWorkerTask->xHandle) == eReady) {
 					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(uCurrentTickCount);

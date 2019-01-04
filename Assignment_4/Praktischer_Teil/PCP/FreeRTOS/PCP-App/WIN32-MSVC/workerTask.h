@@ -2,6 +2,8 @@
 #ifndef TASK_H_
 #define TASK_H_
 
+/* Data Structure that stores task information needed for the task dispatcher and ICPP */
+
 /* Kernel includes. */
 #include "FreeRTOS.h"
 #include "task.h"

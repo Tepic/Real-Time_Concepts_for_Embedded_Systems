@@ -115,7 +115,7 @@
     <ClInclude Include="..\..\Source\include\timers.h" />
     <ClInclude Include="..\..\Source\portable\MSVC-MingW\portmacro.h" />
     <ClInclude Include="bool_t.h" />
-    <ClInclude Include="debug.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="FreeRTOSConfig.h" />
     <ClInclude Include="..\..\Source\include\croutine.h" />
     <ClInclude Include="..\..\Source\include\FreeRTOS.h" />
@@ -133,6 +133,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\..\..\..\..\Assignment 3\Practical\RTC_Exercise_3_Team_5\RTC_Exercise_3_Team_5\names.txt" />
+    <Text Include="readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

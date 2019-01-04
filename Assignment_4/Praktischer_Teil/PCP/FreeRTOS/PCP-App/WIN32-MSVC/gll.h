@@ -1,10 +1,14 @@
 #ifndef _GLL_H_
 #define _GLL_H_
 
+/*
+	Linked List Data Structure implementation
+*/
+
 /* 
  * File:     gll.h
  * Author:   Philip Klostermann 
- * Webpage:  https://github.com/philbot9/generic-linked-list
+ * Downloaded from:  https://github.com/philbot9/generic-linked-list
  */
 
 /*

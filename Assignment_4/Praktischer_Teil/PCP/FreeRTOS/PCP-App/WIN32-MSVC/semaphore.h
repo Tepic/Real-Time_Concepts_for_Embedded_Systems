@@ -2,6 +2,8 @@
 #ifndef SEMAPHORE_H_
 #define SEMAPHORE_H_
 
+/* Wrapper Functions for FreeRTOS Semaphore */
+
 /* Standard includes. */
 #include <conio.h>
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "semaphore.h"
-#include "debug.h"
+#include "config.h"
 
 #define SEMAPHORE_FREE 1
 #define SEMAPHORE_LOCKED_BY_OTHER_TASK 2
@@ -230,8 +230,19 @@ int8_t PIP_vBinarySemaphoreGive(Semaphore_t* pSemaphore, WorkerTask_t* pTaskToRe
 		gll_pop(pTaskToReleaseResource->pBlockedTaskList);
 
 #if IS_SCHEDULER_RUNNING
-		// Blocked task gets unblocked
-		vTaskResume(pHighestPrirorityTaskBlockedBySemaphore->xHandle); 
+
+		/*
+		eTaskState currentTaskState = eTaskGetState(pHighestPrirorityTaskBlockedBySemaphore->xHandle);
+
+		if (currentTaskState != eRunning)
+		{
+			// Blocked task gets unblocked
+			vTaskResume(pHighestPrirorityTaskBlockedBySemaphore->xHandle);
+		}
+
+		*/
+		vTaskResume(pHighestPrirorityTaskBlockedBySemaphore->xHandle);
+		 
 #endif
 #if DEBUG
 		vPrintString("Task #: "); vPrintInteger(pHighestPrirorityTaskBlockedBySemaphore->uTaskNumber); vPrintStringLn(" gets awaken!");

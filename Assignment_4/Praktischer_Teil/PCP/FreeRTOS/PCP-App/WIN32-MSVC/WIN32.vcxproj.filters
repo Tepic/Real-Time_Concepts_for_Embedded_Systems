@@ -138,14 +138,22 @@
     <ClInclude Include="gll.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
-    <ClInclude Include="debug.h">
+    <ClInclude Include="test.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
-    <ClInclude Include="test.h">
+    <ClInclude Include="config.h">
       <Filter>PCP-App Source\PCP-App</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </Text>
+    <Text Include="..\..\..\..\..\..\..\..\Assignment 3\Practical\RTC_Exercise_3_Team_5\RTC_Exercise_3_Team_5\names.txt">
+      <Filter>PCP-App Source\PCP-App</Filter>
+    </Text>
   </ItemGroup>
 </Project>

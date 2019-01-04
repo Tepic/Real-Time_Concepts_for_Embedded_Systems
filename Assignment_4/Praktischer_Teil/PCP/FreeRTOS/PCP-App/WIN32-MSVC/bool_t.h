@@ -2,6 +2,7 @@
 #ifndef BOOL_H_
 #define BOOL_H_
 
+/* Used to define boolean type*/
 #include <stdint.h>
 
 #ifndef true
