@@ -13,6 +13,7 @@
 /* Other includes */
 #include "bool_t.h"
 #include "gll.h"
+#include "queue.h"
 
 #define WORKER_TASK_NONE_PRIORITY 0
 
@@ -30,12 +31,13 @@ typedef struct workerTask
 	uint16_t uPeriod;
 	gll_t* pUsedSemaphoreList;
 	gll_t* pBlockedTaskList; // List of blocked tasks on this task
+	QueueHandle_t* pQueueHandle;
 
 } WorkerTask_t;
 
 /* Function declarations */
 
-WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint8_t uStartValue, uint8_t uEndValue, uint16_t uPeriod, gll_t* pUsedSemaphoreList);
+WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint8_t uStartValue, uint8_t uEndValue, uint16_t uPeriod, gll_t* pUsedSemaphoreList, QueueHandle_t* pQueueHandle);
 void WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pWorkerTask);

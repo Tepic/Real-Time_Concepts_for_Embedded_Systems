@@ -92,10 +92,10 @@ void *gll_last(gll_t *list)
  */
 static gll_node_t *gll_findNode(gll_t *list, int pos) 
 {
+  gll_node_t *currNode;
   if(pos > list->size || pos < 0)
     return NULL;  
 
-  gll_node_t *currNode;
   int currPos;
   int reverse; 
    
@@ -129,11 +129,11 @@ static gll_node_t *gll_findNode(gll_t *list, int pos)
  */
 int gll_add(gll_t *list, void *data, int pos) 
 {
+  gll_node_t *newNode;
+  gll_node_t *currNode;
   if(pos > list->size || pos < 0)
     return C_NOK;
 
-  gll_node_t *newNode;
-  gll_node_t *currNode;
 
   /* Create the new node */
   newNode = gll_initNode(data);
@@ -276,10 +276,11 @@ void *gll_remove(gll_t *list, int pos)
  */
 void *gll_pop(gll_t *list) 
 {
+	gll_node_t *node;
   if(!list)
     return NULL;
 
-  gll_node_t *node = list->first;
+  node = list->first;
   if(node == NULL)
     return NULL;
 

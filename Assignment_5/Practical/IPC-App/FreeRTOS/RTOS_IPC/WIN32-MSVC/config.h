@@ -7,6 +7,8 @@
 
 #define DEBUG false
 #define TEST false
-#define IS_SCHEDULER_RUNNING true
+#define IS_SCHEDULER_RUNNING false
+
+#define _DEBUG_ false
 
 #endif // !CONFIG_H__

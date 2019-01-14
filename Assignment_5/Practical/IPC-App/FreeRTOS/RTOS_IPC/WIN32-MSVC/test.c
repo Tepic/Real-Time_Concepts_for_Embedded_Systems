@@ -2331,12 +2331,12 @@ void vTast_TestAddList() {
 void vTest_TestAddingToTheList(gll_t* pTaskList) {
 
 	WorkerTask_t* pTask_1 = gll_get(pTaskList, 0);
-	WorkerTask_t* pTask_1_1 = WorkerTask_Create(999, 1, 5, 0, 0, 3, 999);
-	WorkerTask_t* pTask_1_2 = WorkerTask_Create(999, 1, 5, 0, 0, 3, 999);
+	WorkerTask_t* pTask_1_1 = WorkerTask_Create(999, 1, 5, 0, 0, 3, 999,NULL);
+	WorkerTask_t* pTask_1_2 = WorkerTask_Create(999, 1, 5, 0, 0, 3, 999, NULL);
 
 	WorkerTask_t* pTask_2 = gll_get(pTaskList, 1); 
-	WorkerTask_t* pTask_2_1 = WorkerTask_Create(999, 2, 4, 0, 0, 3, 999);
-	WorkerTask_t* pTask_2_2 = WorkerTask_Create(999, 2, 4, 0, 0, 3, 999);
+	WorkerTask_t* pTask_2_1 = WorkerTask_Create(999, 2, 4, 0, 0, 3, 999, NULL);
+	WorkerTask_t* pTask_2_2 = WorkerTask_Create(999, 2, 4, 0, 0, 3, 999, NULL);
 
 	WorkerTask_t* pTask_3 = gll_get(pTaskList, 2);
 	WorkerTask_t* pTask_4 = gll_get(pTaskList, 3);
@@ -2379,19 +2379,19 @@ void vTest(TaskFunction_t taskHandler_1,
 
 	gll_push(semaphoreList_task_1, pSemaphore_B);
 	gll_push(semaphoreList_task_1, pSemaphore_C);
-	WorkerTask_t* pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 0, 0, 10, semaphoreList_task_1);
+	WorkerTask_t* pTask_1 = WorkerTask_Create(taskHandler_1, 1, 5, 0, 0, 10, semaphoreList_task_1,NULL);
 
 	gll_push(semaphoreList_task_2, pSemaphore_A);
 	gll_push(semaphoreList_task_2, pSemaphore_C);
-	WorkerTask_t* pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 0, 0, 10, semaphoreList_task_2);
+	WorkerTask_t* pTask_2 = WorkerTask_Create(taskHandler_2, 2, 4, 0, 0, 10, semaphoreList_task_2, NULL);
 
 	gll_push(semaphoreList_task_3, pSemaphore_A);
 	gll_push(semaphoreList_task_3, pSemaphore_B);
-	WorkerTask_t* pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 0, 0, 10, semaphoreList_task_3);
+	WorkerTask_t* pTask_3 = WorkerTask_Create(taskHandler_3, 3, 3, 0, 0, 10, semaphoreList_task_3, NULL);
 
 	gll_push(semaphoreList_task_4, pSemaphore_A);
 	gll_push(semaphoreList_task_4, pSemaphore_B);
-	WorkerTask_t* pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 0, 10, semaphoreList_task_4);
+	WorkerTask_t* pTask_4 = WorkerTask_Create(taskHandler_4, 4, 2, 0, 0, 10, semaphoreList_task_4, NULL);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
 	gll_pushBack(taskList, pTask_1);
