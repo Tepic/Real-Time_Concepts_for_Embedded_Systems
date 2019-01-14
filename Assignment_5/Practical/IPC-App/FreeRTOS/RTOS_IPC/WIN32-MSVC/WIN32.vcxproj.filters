@@ -67,6 +67,18 @@
     <ClCompile Include="main_exercise.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
+    <ClCompile Include="semaphore.c">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClCompile>
+    <ClCompile Include="workerTask.c">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClCompile>
+    <ClCompile Include="gll.c">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeRTOSConfig.h">
@@ -111,9 +123,38 @@
     <ClInclude Include="..\..\Source\include\stream_buffer.h">
       <Filter>FreeRTOS Source\Include</Filter>
     </ClInclude>
+    <ClInclude Include="bool_t.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="gll.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="print.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="semaphore.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="test.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="workerTask.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="names.txt">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </Text>
+    <Text Include="readme.txt">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </Text>
   </ItemGroup>
 </Project>
