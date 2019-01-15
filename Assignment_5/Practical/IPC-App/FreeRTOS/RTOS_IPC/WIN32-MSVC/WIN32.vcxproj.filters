@@ -79,9 +79,6 @@
     <ClCompile Include="gll.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
-    <ClCompile Include="controllerTask.c">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeRTOSConfig.h">
@@ -145,9 +142,6 @@
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
     <ClInclude Include="workerTask.h">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClInclude>
-    <ClInclude Include="controllerTask.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
   </ItemGroup>

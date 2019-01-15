@@ -51,7 +51,8 @@ const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
 /* TODO */
 static gll_t* global_taskList;
 static QueueHandle_t xQueue1, xQueue2A, xQueue2B;
-static uint32_t uCurrentTickCount = 0;
+static QueueHandle_t xQueueTickCount;
+//static uint32_t uCurrentTickCount = 0;
 
 static void vUselessLoad(uint32_t ulCycles);
 static void prvTaskSchedulerHandler(void *pvParameters);
@@ -105,8 +106,9 @@ void prvTaskSchedulerHandler(void *pvParameters)
 #endif
 		return;
 	}
+	
+	uint32_t uCurrentTickCount = 0;
 
-	uCurrentTickCount = 0;
 	gll_t* pTaskList = (gll_t*)pvParameters;
 	WorkerTask_t* pWorkerTask = NULL;
 
@@ -144,7 +146,9 @@ void prvTaskSchedulerHandler(void *pvParameters)
 
 		}
 
-		uCurrentTickCount++;
+		++uCurrentTickCount;
+		//xQueueSend(xQueueTickCount, (void *)&uCurrentTickCount, (TickType_t)0);
+		xQueueOverwrite(xQueueTickCount, (void *)&uCurrentTickCount);
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
 }
@@ -175,13 +179,13 @@ static void prvTaskSensor1(void * pvParameters)
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Reseting QUEUE");
 #endif
-		xQueueReset(*(pQueueHandle));
-		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
+		//xQueueReset(*(pQueueHandle));
+		xQueueOverwrite(*(pQueueHandle), &sensorTask_1->uCurrentValue);
 
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Sending to QUEUE");
 #endif
-		xQueueSend(*(pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
+		//xQueueSend(*(pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
 
 		usPrioritySemaphoreSignal(pSemaphore_A, sensorTask_1);
 
@@ -217,9 +221,9 @@ static void prvTaskSensor2(void * pvParameters)
 
 		++sensorTask_2->uCurrentValue;
 
-		xQueueReset(*(pQueueHandle));
-		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
-		xQueueSend(*(pQueueHandle), (void *)&(sensorTask_2->uCurrentValue), (TickType_t)0);
+		//xQueueReset(*(pQueueHandle));
+		xQueueOverwrite(*(pQueueHandle), &sensorTask_2->uCurrentValue);
+		//xQueueSend(*(pQueueHandle), (void *)&(sensorTask_2->uCurrentValue), (TickType_t)0);
 		
 		usPrioritySemaphoreSignal(pSemaphore_B, sensorTask_2);
 
@@ -253,10 +257,10 @@ static void prvTaskSensor3(void * pvParameters)
 		usPrioritySemaphoreWait(pSemaphore_C, sensorTask_3, global_taskList);
 		++sensorTask_3->uCurrentValue;
 
-		xQueueReset(*(pQueueHandle));
-		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
-		xQueueSend(*(pQueueHandle), (void *)&(sensorTask_3->uCurrentValue), (TickType_t)0);
-
+		//xQueueReset(*(pQueueHandle));
+		xQueueOverwrite(*(pQueueHandle), &sensorTask_3->uCurrentValue);
+		//xQueueSend(*(pQueueHandle), (void *)&(sensorTask_3->uCurrentValue), (TickType_t)0);
+		
 #if _DEBUG_
 		vPrintString("Output sensor 3: ");
 		vPrintUnsignedInteger(sensorTask_3->uCurrentValue);
@@ -276,41 +280,79 @@ static void prvTaskControl1(void * pvParameters)
 #endif
 		return;
 	}
+	uint32_t uCurrentTickCount = 0;
 
 	WorkerTask_t* controlTask_1 = (WorkerTask_t*)pvParameters;
-	//WorkerTask_t* controlTask_2 = (WorkerTask_t*)pvParameters;
-	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 1); // Semaphore B ID = 1
-	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 1
-	uint8_t uQueuedValue = 0;
+
+	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 1); // Semaphore A ID = 1
+	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 2
+	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 3); // Semaphore C ID = 3
+	uint8_t uQueuedValue1 = 0;
+	uint8_t uQueuedValue2 = 0;
+	uint8_t uQueuedValue3 = 0;
 
 	QueueHandle_t* pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 0);  // Queue_1
-	QueueHandle_t xQueue1 = 0;
-	//if (pQueueHandle != NULL)
-		xQueue1 = *pQueueHandle;
-	//QueueHandle_t xQueue2 = *(controlTask_2->pQueueHandle);
+	QueueHandle_t xQueue1 = *pQueueHandle;
+				   pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 1);  // Queue_2A
+	QueueHandle_t xQueue2A = *pQueueHandle;
+				   pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 2);  // Queue_2B
+	QueueHandle_t xQueue2B = *pQueueHandle;
 
 	while (true)
 	{
+		uQueuedValue1 = 0;
+		uQueuedValue2 = 0;
+		uQueuedValue3 = 0;
+
+		xQueuePeek(xQueueTickCount, &(uCurrentTickCount), (TickType_t)0);
+
 		usPrioritySemaphoreWait(pSemaphore_A, controlTask_1, global_taskList);
+		usPrioritySemaphoreWait(pSemaphore_B, controlTask_1, global_taskList);
+		usPrioritySemaphoreWait(pSemaphore_C, controlTask_1, global_taskList);
 		
-		if (xQueue1 != 0)
+		if (xQueuePeek(xQueue1, &(uQueuedValue1), (TickType_t)0) &&
+				(
+					xQueuePeek(xQueue2A, &(uQueuedValue2), (TickType_t)0) || xQueuePeek(xQueue2B, &(uQueuedValue3), (TickType_t)0)
+				)
+			)
 		{
-			if (xQueueReceive(xQueue1, &(uQueuedValue), (TickType_t)1))
+			if (uQueuedValue1 != 0 && uQueuedValue2 != 0)
 			{
-				if (uQueuedValue != 0)
-				{
-					vPrintString("Controller 1 has received sensor data at: ");
-					vPrintUnsignedInteger(uCurrentTickCount);
-					vPrintString("; Sensor1: ");
-					vPrintUnsignedInteger(uQueuedValue);
-					vPrintStringLn("");
-				}
+				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
+				xQueueReceive(xQueue2A, &(uQueuedValue2), (TickType_t)0);
+
+				vPrintString("Controller 1 has received sensor data at: ");
+				vPrintUnsignedInteger(uCurrentTickCount);
+				vPrintString("; Sensor1: ");
+				vPrintUnsignedInteger(uQueuedValue1);
+				vPrintString("; Sensor2: ");
+				vPrintUnsignedInteger(uQueuedValue2);
+				vPrintStringLn("");
+			}
+			else if (uQueuedValue1 != 0 && uQueuedValue3 != 0)
+			{
+				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
+				xQueueReceive(xQueue2B, &(uQueuedValue3), (TickType_t)0);
+
+				vPrintString("Controller 1 has received sensor data at: ");
+				vPrintUnsignedInteger(uCurrentTickCount);
+				vPrintString("; Sensor1: ");
+				vPrintUnsignedInteger(uQueuedValue1);
+				vPrintString("; Sensor2: ");
+				vPrintUnsignedInteger(uQueuedValue3);
+				vPrintStringLn("");
 			}
 		}
 
+		usPrioritySemaphoreSignal(pSemaphore_C, controlTask_1);
+		usPrioritySemaphoreSignal(pSemaphore_B, controlTask_1);
 		usPrioritySemaphoreSignal(pSemaphore_A, controlTask_1);
 
 		// Task completed one period, suspend it
+
+		vPrintString("Current ticks: ");
+		vPrintUnsignedInteger(uCurrentTickCount);
+		vPrintStringLn("");
 		vTaskSuspend(controlTask_1->xHandle);
 	}
 }
@@ -351,6 +393,8 @@ void vInitialize(
 	xQueue1  = xQueueCreate(1, sizeof(uint8_t));
 	xQueue2A = xQueueCreate(1, sizeof(uint8_t));
 	xQueue2B = xQueueCreate(1, sizeof(uint8_t));
+
+	xQueueTickCount = xQueueCreate(1, sizeof(TickType_t));
 
 	gll_push(semaphoreList_task_sensor1, pSemaphore_A);
 	gll_push(queueList_task_sensor1, &xQueue1);
@@ -398,7 +442,8 @@ void vInitialize(
 	vTaskSuspend(pTask_Sensor1->xHandle);
 	vTaskSuspend(pTask_Sensor2->xHandle);
 	vTaskSuspend(pTask_Sensor3->xHandle);
-	//vTaskSuspend(pTask_4->xHandle);
+	vTaskSuspend(pTask_Control1->xHandle);
+	vTaskSuspend(pTask_Control2->xHandle);
 }
 
 static void prvTaskControl2(void *pvParameters){}
