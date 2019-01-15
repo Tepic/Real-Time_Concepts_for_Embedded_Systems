@@ -18,6 +18,7 @@
 
 /* Other Includes */
 #include "workerTask.h"
+//#include "controllerTask.h"
 #include "print.h"
 #include "config.h"
 #include "event_groups.h"
@@ -100,19 +101,28 @@ void prvTaskSchedulerHandler(void *pvParameters)
 	gll_t* pTaskList = (gll_t*)pvParameters;
 	WorkerTask_t* pWorkerTask = NULL;
 
+	EventBits_t uxBits;
 	while (true)
 	{
+		uxBits = xEventGroupGetBits(xEventGroup);
 		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++)
 		{
 
 			pWorkerTask = gll_get(pTaskList, uIndex);
 
-			if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) && // Check if the task is released 
-				((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod)))
+			if (pWorkerTask->xHandle != NULL)
 			{
-				vTaskResume(pWorkerTask->xHandle);
+				if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) && // Check if the task is released 
+					((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod)))
+				{
+					vTaskResume(pWorkerTask->xHandle);
+				}
 			}
-
+			else if (uIndex == 3 && (uxBits & BIT_4)!=0)
+			{
+				xEventGroupClearBits(xEventGroup, BIT_4);
+				xEventGroupSetBits(xEventGroup, BIT_3);
+			}
 		}
 
 		++uCurrentTickCount;
@@ -221,10 +231,8 @@ static void prvTaskControl(void * pvParameters)
 			vPrintString("Controller 1 has had an error at ");
 			vPrintUnsignedInteger(uCurrentTickCount);
 			vPrintStringLn(".");
-
-			uxBits = xEventGroupClearBits(xEventGroup, BIT_4);
-			uxBits = xEventGroupSetBits(xEventGroup, BIT_3);
-
+						
+			controlTask->xHandle = NULL;
 			vTaskDelete(controlTask->xHandle);
 			return;
 		}
@@ -327,11 +335,11 @@ void vInitialize(
 	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 2, 0, 100, queueList_task_control2);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
-	gll_pushBack(global_taskList, pTask_Sensor1);
-	gll_pushBack(global_taskList, pTask_Sensor2);
-	gll_pushBack(global_taskList, pTask_Sensor3);
-	gll_pushBack(global_taskList, pTask_Control1);
-	gll_pushBack(global_taskList, pTask_Control2);
+	gll_pushBack(global_taskList, pTask_Sensor1);	// index 0
+	gll_pushBack(global_taskList, pTask_Sensor2);	// index 1
+	gll_pushBack(global_taskList, pTask_Sensor3);	// index 2
+	gll_pushBack(global_taskList, pTask_Control1);	// index 3
+	gll_pushBack(global_taskList, pTask_Control2);	// index 4
 
 	// Initialize scheduler 
 	TaskHandle_t xTaskSchedulerHandle;

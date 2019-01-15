@@ -67,12 +67,6 @@
     <ClCompile Include="main_exercise.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
-    <ClCompile Include="semaphore.c">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClCompile>
-    <ClCompile Include="test.c">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClCompile>
     <ClCompile Include="workerTask.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
@@ -133,12 +127,6 @@
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
     <ClInclude Include="print.h">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClInclude>
-    <ClInclude Include="semaphore.h">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClInclude>
-    <ClInclude Include="test.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
     <ClInclude Include="workerTask.h">
