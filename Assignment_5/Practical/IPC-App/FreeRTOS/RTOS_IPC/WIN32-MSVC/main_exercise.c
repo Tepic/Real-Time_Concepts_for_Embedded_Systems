@@ -15,14 +15,12 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
-#include "semphr.h"
 
 /* Other Includes */
 #include "workerTask.h"
-//#include "controllerTask.h"
 #include "print.h"
-#include "semaphore.h"
 #include "config.h"
+#include "event_groups.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
 
@@ -31,36 +29,33 @@
 #define workersUSELESS_CYCLES_PER_TIME_UNIT		( 1000000UL)
 
 #define TASK_SCHEDULER_PRIORITY 6
-#define TASK_SCHEDULER_TICK_TIME 3
+#define TASK_SCHEDULER_TICK_TIME 1
+
+#define BIT_4	( 1 << 4 )	// Controller 1 is ACTIVE
+#define BIT_3	( 1 << 3 )	// Controller 2 is ACTIVE
+#define BIT_2	( 1 << 2 )	// Queue 1 is ready
+#define BIT_1	( 1 << 1 )	// Queue 2A is ready
+#define BIT_0	( 1 << 0 )	// Queue 2B is ready
 
 /* TODO: output frequencey
 */
 TickType_t currentTime = 0;
 const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
 
-/*
-#ifndef true
-#define true 1
-#endif 
-
-#ifndef false
-#define false 0
-#endif
-*/
-
 /* TODO */
 static gll_t* global_taskList;
 static QueueHandle_t xQueue1, xQueue2A, xQueue2B;
 static QueueHandle_t xQueueTickCount;
-//static uint32_t uCurrentTickCount = 0;
+
+/* Declare a variable to hold the created event group. */
+EventGroupHandle_t xEventGroup;
 
 static void vUselessLoad(uint32_t ulCycles);
 static void prvTaskSchedulerHandler(void *pvParameters);
 static void prvTaskSensor1(void *pvParameters);
 static void prvTaskSensor2(void *pvParameters);
 static void prvTaskSensor3(void *pvParameters);
-static void prvTaskControl1(void *pvParameters);
-static void prvTaskControl2(void *pvParameters);
+static void prvTaskControl(void *pvParameters);
 
 void vInitialize(TaskFunction_t schedulerHandler,
 	TaskFunction_t taskHandler_1,
@@ -76,7 +71,7 @@ void main_exercise(void)
 {
 	/* TODO */
 	vPrintStringLn("Starting the application...");
-	vInitialize(prvTaskSchedulerHandler, prvTaskSensor1, prvTaskSensor2, prvTaskSensor3, prvTaskControl1, prvTaskControl2);
+	vInitialize(prvTaskSchedulerHandler, prvTaskSensor1, prvTaskSensor2, prvTaskSensor3, prvTaskControl, prvTaskControl);
 	vTaskStartScheduler();
 
 	while (true)
@@ -99,23 +94,14 @@ static void vUselessLoad(uint32_t ulTimeUnits) {
 
 // Task Scheduler Process
 void prvTaskSchedulerHandler(void *pvParameters) 
-{
-	if (pvParameters == NULL) {
-#if DEBUG
-		vPrintStringLn("Error in function 'prvTaskSchedulerHandler'. NULL Pointer");
-#endif
-		return;
-	}
-	
+{	
 	uint32_t uCurrentTickCount = 0;
 
 	gll_t* pTaskList = (gll_t*)pvParameters;
 	WorkerTask_t* pWorkerTask = NULL;
 
-	while (true) {
-#if DEBUG
-		vPrintString("Current tick time: "); vPrintInteger(sCurrentTickCount); vPrintString("\n");
-#endif
+	while (true)
+	{
 		for (uint8_t uIndex = 0; uIndex < pTaskList->size; uIndex++)
 		{
 
@@ -123,31 +109,13 @@ void prvTaskSchedulerHandler(void *pvParameters)
 
 			if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) && // Check if the task is released 
 				((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod)))
-			{ // and Check if the current time is the next period the task 
-				/*
-				eTaskState currentTaskState = eTaskGetState(pWorkerTask->xHandle);
-
-				if (currentTaskState != eRunning)
-				{
-				// Dispatch the ready task
+			{
 				vTaskResume(pWorkerTask->xHandle);
-				} */
-
-				// Dispatch the ready task
-				vTaskResume(pWorkerTask->xHandle);
-#if IS_SCHEDULER_RUNNING
-				if (eTaskGetState(pWorkerTask->xHandle) == eReady)
-				{
-					vPrintString("Task #"); vPrintInteger(pWorkerTask->uTaskNumber); vPrintString(" gets READY at tick count: "); vPrintUnsignedInteger(uCurrentTickCount);
-					vPrintString(", with priority: "); vPrintUnsignedInteger(uxTaskPriorityGet(pWorkerTask->xHandle));  vPrintStringLn("");
-				}
-#endif 
 			}
 
 		}
 
 		++uCurrentTickCount;
-		//xQueueSend(xQueueTickCount, (void *)&uCurrentTickCount, (TickType_t)0);
 		xQueueOverwrite(xQueueTickCount, (void *)&uCurrentTickCount);
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
 	}
@@ -165,33 +133,16 @@ static void prvTaskSensor1(void * pvParameters)
 	WorkerTask_t* sensorTask_1 = (WorkerTask_t*)pvParameters;
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_1->pUsedQueueList, 0);  // Queue_1
+
+	EventBits_t uxBits;
 	while (true)
-	{	
-
-#if _DEBUG_
-		vPrintStringLn("SENSOR_1 - Acquiring Semaphore");
-#endif
-		
-		++sensorTask_1->uCurrentValue;
-
-#if _DEBUG_
-		vPrintStringLn("SENSOR_1 - Reseting QUEUE");
-#endif
-		//xQueueReset(*(pQueueHandle));
+	{
+		if(++sensorTask_1->uCurrentValue >= sensorTask_1->uEndValue)
+		{
+			sensorTask_1->uCurrentValue = sensorTask_1->uStartValue;
+		}
 		xQueueOverwrite(*(pQueueHandle), &sensorTask_1->uCurrentValue);
-
-#if _DEBUG_
-		vPrintStringLn("SENSOR_1 - Sending to QUEUE");
-#endif
-		//xQueueSend(*(pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
-
-#if _DEBUG_
-		vPrintStringLn("SENSOR_1 - Realising Semaphore");
-
-		vPrintString("Output sensor 1: ");
-		vPrintUnsignedInteger(sensorTask_1->uCurrentValue);
-		vPrintString("");
-#endif
+		uxBits = xEventGroupSetBits(xEventGroup, BIT_2);
 
 		// Task completed one period, suspend it
 		vTaskSuspend(sensorTask_1->xHandle);
@@ -200,29 +151,19 @@ static void prvTaskSensor1(void * pvParameters)
 
 static void prvTaskSensor2(void * pvParameters)
 {
-	if (pvParameters == NULL) {
-#if DEBUG
-		vPrintStringLn("Error in function 'prvTask2'. NULL Pointer");
-#endif
-		return;
-	}
-
 	WorkerTask_t* sensorTask_2 = (WorkerTask_t*)pvParameters;
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_2->pUsedQueueList, 0);  // Queue_2A
+
+	EventBits_t uxBits;
 	while (true)
 	{
-		++sensorTask_2->uCurrentValue;
-
-		//xQueueReset(*(pQueueHandle));
+		if(++sensorTask_2->uCurrentValue >= sensorTask_2->uEndValue)
+		{
+			sensorTask_2->uCurrentValue = sensorTask_2->uStartValue;
+		}
 		xQueueOverwrite(*(pQueueHandle), &sensorTask_2->uCurrentValue);
-		//xQueueSend(*(pQueueHandle), (void *)&(sensorTask_2->uCurrentValue), (TickType_t)0);
-		
-#if _DEBUG_
-		vPrintString("Output sensor 2: ");
-		vPrintUnsignedInteger(sensorTask_2->uCurrentValue);
-		vPrintString("");
-#endif
+		uxBits = xEventGroupSetBits(xEventGroup, BIT_1);
 
 		// Task completed one period, suspend it
 		vTaskSuspend(sensorTask_2->xHandle);
@@ -231,106 +172,107 @@ static void prvTaskSensor2(void * pvParameters)
 
 static void prvTaskSensor3(void * pvParameters)
 {
-	if (pvParameters == NULL) {
-#if DEBUG
-		vPrintStringLn("Error in function 'prvTask2'. NULL Pointer");
-#endif
-		return;
-	}
-
 	WorkerTask_t* sensorTask_3 = (WorkerTask_t*)pvParameters;
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_3->pUsedQueueList, 0);  // Queue_2B
+
+	EventBits_t uxBits;
 	while (true)
 	{
-		++sensorTask_3->uCurrentValue;
-
-		//xQueueReset(*(pQueueHandle));
+		if(++sensorTask_3->uCurrentValue >= sensorTask_3->uEndValue)
+		{
+			sensorTask_3->uCurrentValue = sensorTask_3->uStartValue;
+		}
 		xQueueOverwrite(*(pQueueHandle), &sensorTask_3->uCurrentValue);
-		//xQueueSend(*(pQueueHandle), (void *)&(sensorTask_3->uCurrentValue), (TickType_t)0);
-		
-#if _DEBUG_
-		vPrintString("Output sensor 3: ");
-		vPrintUnsignedInteger(sensorTask_3->uCurrentValue);
-		vPrintString("");
-#endif
+		uxBits = xEventGroupSetBits(xEventGroup, BIT_0);
 
 		// Task completed one period, suspend it
 		vTaskSuspend(sensorTask_3->xHandle);
 	}
 }
 
-static void prvTaskControl1(void * pvParameters)
+static void prvTaskControl(void * pvParameters)
 {
-	if (pvParameters == NULL) {
-#if DEBUG
-		vPrintStringLn("Error in function 'prvTask2'. NULL Pointer");
-#endif
-		return;
-	}
 	uint32_t uCurrentTickCount = 0;
 
-	WorkerTask_t* controlTask_1 = (WorkerTask_t*)pvParameters;
+	WorkerTask_t* controlTask = (WorkerTask_t*)pvParameters;
 
-	uint8_t uQueuedValue1 = 0;
-	uint8_t uQueuedValue2 = 0;
-	uint8_t uQueuedValue3 = 0;
+	uint16_t uQueuedValue1 = 0;
+	uint16_t uQueuedValue2 = 0;
+	uint16_t uQueuedValue3 = 0;
 
-	QueueHandle_t* pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 0);  // Queue_1
+	QueueHandle_t*	pQueueHandle = gll_get(controlTask->pUsedQueueList, 0);  // Queue_1
 	QueueHandle_t xQueue1 = *pQueueHandle;
-				   pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 1);  // Queue_2A
+					pQueueHandle = gll_get(controlTask->pUsedQueueList, 1);  // Queue_2A
 	QueueHandle_t xQueue2A = *pQueueHandle;
-				   pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 2);  // Queue_2B
+					pQueueHandle = gll_get(controlTask->pUsedQueueList, 2);  // Queue_2B
 	QueueHandle_t xQueue2B = *pQueueHandle;
 
+	EventBits_t uxBits;
 	while (true)
 	{
-		uQueuedValue1 = 0;
-		uQueuedValue2 = 0;
-		uQueuedValue3 = 0;
+		uQueuedValue1 = uQueuedValue2 = uQueuedValue3 = 0;
 
 		xQueuePeek(xQueueTickCount, &(uCurrentTickCount), (TickType_t)0);
-		
-		if (xQueuePeek(xQueue1, &(uQueuedValue1), (TickType_t)0) &&
-				(
-					xQueuePeek(xQueue2A, &(uQueuedValue2), (TickType_t)0) || xQueuePeek(xQueue2B, &(uQueuedValue3), (TickType_t)0)
-				)
-			)
+
+
+		if (uCurrentTickCount >= 2001 && controlTask->uStartValue == 1)
 		{
-			if (uQueuedValue1 != 0 && uQueuedValue2 != 0)
-			{
-				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
-				xQueueReceive(xQueue2A, &(uQueuedValue2), (TickType_t)0);
+			vPrintString("Controller 1 has had an error at ");
+			vPrintUnsignedInteger(uCurrentTickCount);
+			vPrintStringLn(".");
 
-				vPrintString("Controller 1 has received sensor data at: ");
-				vPrintUnsignedInteger(uCurrentTickCount);
-				vPrintString("; Sensor1: ");
-				vPrintUnsignedInteger(uQueuedValue1);
-				vPrintString("; Sensor2: ");
-				vPrintUnsignedInteger(uQueuedValue2);
-				vPrintStringLn("");
-			}
-			else if (uQueuedValue1 != 0 && uQueuedValue3 != 0)
-			{
-				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
-				xQueueReceive(xQueue2B, &(uQueuedValue3), (TickType_t)0);
+			uxBits = xEventGroupClearBits(xEventGroup, BIT_4);
+			uxBits = xEventGroupSetBits(xEventGroup, BIT_3);
 
-				vPrintString("Controller 1 has received sensor data at: ");
-				vPrintUnsignedInteger(uCurrentTickCount);
-				vPrintString("; Sensor1: ");
-				vPrintUnsignedInteger(uQueuedValue1);
-				vPrintString("; Sensor2: ");
-				vPrintUnsignedInteger(uQueuedValue3);
-				vPrintStringLn("");
-			}
+			vTaskDelete(controlTask->xHandle);
+			return;
+		}
+
+		uxBits = xEventGroupWaitBits(xEventGroup, BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4, pdFALSE, pdFALSE, (TickType_t)0);
+
+		if (((uxBits & (BIT_4)) && controlTask->uStartValue == 1) || ((uxBits & (BIT_3)) && controlTask->uStartValue == 2))
+		{
+			//if (	(uxBits & (BIT_2))		&&		 (	(uxBits & (BIT_1)) || (uxBits & (BIT_0))	)		)
+			//{
+				if ((uxBits & (BIT_2)) && ((uxBits & (BIT_1))))
+				{
+					xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
+					xQueueReceive(xQueue2A, &(uQueuedValue2), (TickType_t)0);
+					uxBits = xEventGroupClearBits(xEventGroup, BIT_1 | BIT_2);
+
+					vPrintString("Controller ");
+					vPrintUnsignedInteger(controlTask->uStartValue);
+					vPrintString(" has received sensor data at: ");
+					vPrintUnsignedInteger(uCurrentTickCount);
+					vPrintString("; Sensor1: ");
+					vPrintUnsignedInteger(uQueuedValue1);
+					vPrintString("; Sensor2: ");
+					vPrintUnsignedInteger(uQueuedValue2);
+					vPrintStringLn("");
+				}
+				else if ((uxBits & (BIT_2)) && ((uxBits & (BIT_0))))
+				{
+					xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
+					xQueueReceive(xQueue2B, &(uQueuedValue3), (TickType_t)0);
+					uxBits = xEventGroupClearBits(xEventGroup, BIT_0 | BIT_2);
+
+					vPrintString("Controller ");
+					vPrintUnsignedInteger(controlTask->uStartValue);
+					vPrintString(" has received sensor data at: ");
+					vPrintUnsignedInteger(uCurrentTickCount);
+					vPrintString("; Sensor1: ");
+					vPrintUnsignedInteger(uQueuedValue1);
+					vPrintString("; Sensor2: ");
+					vPrintUnsignedInteger(uQueuedValue3);
+					vPrintStringLn("");
+
+				}
+			//}
 		}
 
 		// Task completed one period, suspend it
-
-		vPrintString("Current ticks: ");
-		vPrintUnsignedInteger(uCurrentTickCount);
-		vPrintStringLn("");
-		vTaskSuspend(controlTask_1->xHandle);
+		vTaskSuspend(controlTask->xHandle);
 	}
 }
 
@@ -340,7 +282,10 @@ void vInitialize(
 	TaskFunction_t taskHandler_Sensor2,
 	TaskFunction_t taskHandler_Sensor3,
 	TaskFunction_t taskHandler_Control1,
-	TaskFunction_t taskHandler_Control2) {
+	TaskFunction_t taskHandler_Control2)
+{
+	/* Attempt to create the event group. */
+	xEventGroup = xEventGroupCreate();
 
 	WorkerTask_t* pTask_Sensor1 = NULL;
 	WorkerTask_t* pTask_Sensor2 = NULL;
@@ -349,13 +294,6 @@ void vInitialize(
 	WorkerTask_t* pTask_Control2 = NULL;
 
 	global_taskList = gll_init();
-	gll_t* semaphoreList = gll_init();
-
-	gll_t* semaphoreList_task_sensor1 = gll_init();
-	gll_t* semaphoreList_task_sensor2 = gll_init();
-	gll_t* semaphoreList_task_sensor3 = gll_init();
-	gll_t* semaphoreList_task_control1 = gll_init();
-	gll_t* semaphoreList_task_control2 = gll_init();
 
 	gll_t* queueList_task_sensor1 = gll_init();
 	gll_t* queueList_task_sensor2 = gll_init();
@@ -363,43 +301,30 @@ void vInitialize(
 	gll_t* queueList_task_control1 = gll_init();
 	gll_t* queueList_task_control2 = gll_init();
 
-	Semaphore_t* pSemaphore_A = Semaphore_Create(5, 1);
-	Semaphore_t* pSemaphore_B = Semaphore_Create(5, 2);
-	Semaphore_t* pSemaphore_C = Semaphore_Create(5, 3);
-
-	xQueue1  = xQueueCreate(1, sizeof(uint8_t));
-	xQueue2A = xQueueCreate(1, sizeof(uint8_t));
-	xQueue2B = xQueueCreate(1, sizeof(uint8_t));
+	xQueue1  = xQueueCreate(1, sizeof(uint16_t));
+	xQueue2A = xQueueCreate(1, sizeof(uint16_t));
+	xQueue2B = xQueueCreate(1, sizeof(uint16_t));
 
 	xQueueTickCount = xQueueCreate(1, sizeof(TickType_t));
 
-	gll_push(semaphoreList_task_sensor1, pSemaphore_A);
 	gll_push(queueList_task_sensor1, &xQueue1);
-	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, semaphoreList_task_sensor1, queueList_task_sensor1);
+	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, queueList_task_sensor1);
 
-	gll_push(semaphoreList_task_sensor2, pSemaphore_B);
 	gll_push(queueList_task_sensor2, &xQueue2A);
-	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, semaphoreList_task_sensor2, queueList_task_sensor2);
+	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, queueList_task_sensor2);
 
-	gll_push(semaphoreList_task_sensor3, pSemaphore_C);
 	gll_push(queueList_task_sensor3, &xQueue2B);
-	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, semaphoreList_task_sensor3, queueList_task_sensor3);
+	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, queueList_task_sensor3);
 
-	gll_push(semaphoreList_task_control1, pSemaphore_A);
-	gll_push(semaphoreList_task_control1, pSemaphore_B);
-	gll_push(semaphoreList_task_control1, pSemaphore_C);
 	gll_push(queueList_task_control1, &xQueue2B);
 	gll_push(queueList_task_control1, &xQueue2A);
 	gll_push(queueList_task_control1, &xQueue1);
-	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 0, 0, 100, semaphoreList_task_control1, queueList_task_control1);
+	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 1, 0, 100, queueList_task_control1);
 
-	gll_push(semaphoreList_task_control2, pSemaphore_A);
-	gll_push(semaphoreList_task_control2, pSemaphore_B);
-	gll_push(semaphoreList_task_control2, pSemaphore_C);
 	gll_push(queueList_task_control2, &xQueue2B);
 	gll_push(queueList_task_control2, &xQueue2A);
 	gll_push(queueList_task_control2, &xQueue1);
-	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 0, 0, 100, semaphoreList_task_control2, queueList_task_control2);
+	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 2, 0, 100, queueList_task_control2);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
 	gll_pushBack(global_taskList, pTask_Sensor1);
@@ -407,10 +332,6 @@ void vInitialize(
 	gll_pushBack(global_taskList, pTask_Sensor3);
 	gll_pushBack(global_taskList, pTask_Control1);
 	gll_pushBack(global_taskList, pTask_Control2);
-
-	gll_pushBack(semaphoreList, pSemaphore_A);
-	gll_pushBack(semaphoreList, pSemaphore_B);
-	gll_pushBack(semaphoreList, pSemaphore_C);
 
 	// Initialize scheduler 
 	TaskHandle_t xTaskSchedulerHandle;
@@ -421,29 +342,7 @@ void vInitialize(
 	vTaskSuspend(pTask_Sensor3->xHandle);
 	vTaskSuspend(pTask_Control1->xHandle);
 	vTaskSuspend(pTask_Control2->xHandle);
+
+	// Activate controller 1
+	xEventGroupSetBits(xEventGroup, BIT_4);
 }
-
-static void prvTaskControl2(void *pvParameters){}
-
-/*
-QueueHandle_t* Queue_sList_GetQueueById(gll_t* pQueueList, uint8_t uId) {
-	if (pQueueList == NULL || uId < 0) {
-#if DEBUG
-		vPrintStringLn("Error in function 'Semaphore_usList_GetSemaphoreById'. NULL Pointer or wrong uId");
-#endif
-		return NULL;
-	}
-
-	for (uint8_t uIndex = 0; uIndex < pQueueList->size; ++uIndex) {
-
-		QueueHandle_t* pQueueHandle = gll_get(pQueueList, uIndex);
-		if (pQueueHandle != NULL &&
-			pQueueHandle->uId == uId) {
-
-			return pQueueHandle;
-		}
-	}
-
-	return NULL;
-}
-*/

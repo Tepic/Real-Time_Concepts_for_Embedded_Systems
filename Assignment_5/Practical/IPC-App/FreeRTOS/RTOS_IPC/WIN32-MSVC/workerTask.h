@@ -8,7 +8,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
-#include "semphr.h"
 
 /* Other includes */
 #include "bool_t.h"
@@ -25,20 +24,18 @@ typedef struct workerTask
 	uint8_t uNominalPriority;
 	uint8_t uActivePriority;
 	uint8_t uReleaseTime;
-	uint8_t uStartValue;
-	uint8_t uCurrentValue;
-	uint8_t uEndValue;
+	uint16_t uStartValue;
+	uint16_t uCurrentValue;
+	uint16_t uEndValue;
 	uint16_t uPeriod;
-	gll_t* pUsedSemaphoreList;
 	gll_t* pBlockedTaskList; // List of blocked tasks on this task
-	//QueueHandle_t* pQueueHandle;
 	gll_t* pUsedQueueList;
 
 } WorkerTask_t;
 
 /* Function declarations */
 
-WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint8_t uStartValue, uint8_t uEndValue, uint16_t uPeriod, gll_t* pUsedSemaphoreList, gll_t* pUsedQueueList);
+WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler, uint8_t uTaskNumber, uint8_t nominalPriority, uint16_t uStartValue, uint16_t uEndValue, uint16_t uPeriod, gll_t* pUsedQueueList);
 void WorkerTask_vDestroy(WorkerTask_t* pWorkerTask);
 void WorkerTask_vPrint(WorkerTask_t*);
 void WorkerTask_vListAddTaskDescendingPriorityOrder(gll_t* pTaskList, WorkerTask_t* pWorkerTask);

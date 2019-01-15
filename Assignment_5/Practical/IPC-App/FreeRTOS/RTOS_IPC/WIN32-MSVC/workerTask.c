@@ -5,25 +5,15 @@
 WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	uint8_t uTaskNumber,
 	uint8_t nominalPriority,
-	uint8_t uStartValue,
-	uint8_t uEndValue,
+	uint16_t uStartValue,
+	uint16_t uEndValue,
 	uint16_t uPeriod,
-	gll_t* pUsedSemaphoreList,
 	gll_t* pUsedQueueList)
 	//QueueHandle_t* pQueueHandle)
-{
-
-	if (pUsedSemaphoreList == NULL) {
-#if DEBUG
-		vPrintStringLn("Error in function 'WorkerTask_Create'. NULL Pointer");
-#endif
-		return NULL;
-	}
-	
+{	
 	WorkerTask_t* pWorkerTask = (WorkerTask_t*)malloc(sizeof(WorkerTask_t));
 
 	pWorkerTask->pBlockedTaskList = gll_init();
-	pWorkerTask->pUsedSemaphoreList = pUsedSemaphoreList;
 
 	pWorkerTask->uNominalPriority = nominalPriority;
 	pWorkerTask->uActivePriority = pWorkerTask->uNominalPriority;
@@ -33,7 +23,6 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	pWorkerTask->uCurrentValue = uStartValue;
 	pWorkerTask->uEndValue = uEndValue;
 	pWorkerTask->uReleaseTime = 0;
-	//pWorkerTask->pQueueHandle = pQueueHandle;
 	pWorkerTask->pUsedQueueList = pUsedQueueList;
 
 	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
