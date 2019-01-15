@@ -163,7 +163,6 @@ static void prvTaskSensor1(void * pvParameters)
 	}
 
 	WorkerTask_t* sensorTask_1 = (WorkerTask_t*)pvParameters;
-	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(sensorTask_1->pUsedSemaphoreList, 1); // Semaphore A ID = 1
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_1->pUsedQueueList, 0);  // Queue_1
 	while (true)
@@ -172,7 +171,6 @@ static void prvTaskSensor1(void * pvParameters)
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Acquiring Semaphore");
 #endif
-		usPrioritySemaphoreWait(pSemaphore_A, sensorTask_1, global_taskList);
 		
 		++sensorTask_1->uCurrentValue;
 
@@ -186,8 +184,6 @@ static void prvTaskSensor1(void * pvParameters)
 		vPrintStringLn("SENSOR_1 - Sending to QUEUE");
 #endif
 		//xQueueSend(*(pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
-
-		usPrioritySemaphoreSignal(pSemaphore_A, sensorTask_1);
 
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Realising Semaphore");
@@ -212,22 +208,16 @@ static void prvTaskSensor2(void * pvParameters)
 	}
 
 	WorkerTask_t* sensorTask_2 = (WorkerTask_t*)pvParameters;
-	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(sensorTask_2->pUsedSemaphoreList, 2); // Semaphore B ID = 1
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_2->pUsedQueueList, 0);  // Queue_2A
 	while (true)
 	{
-		usPrioritySemaphoreWait(pSemaphore_B, sensorTask_2, global_taskList);
-
 		++sensorTask_2->uCurrentValue;
 
 		//xQueueReset(*(pQueueHandle));
 		xQueueOverwrite(*(pQueueHandle), &sensorTask_2->uCurrentValue);
 		//xQueueSend(*(pQueueHandle), (void *)&(sensorTask_2->uCurrentValue), (TickType_t)0);
 		
-		usPrioritySemaphoreSignal(pSemaphore_B, sensorTask_2);
-
-
 #if _DEBUG_
 		vPrintString("Output sensor 2: ");
 		vPrintUnsignedInteger(sensorTask_2->uCurrentValue);
@@ -249,12 +239,10 @@ static void prvTaskSensor3(void * pvParameters)
 	}
 
 	WorkerTask_t* sensorTask_3 = (WorkerTask_t*)pvParameters;
-	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(sensorTask_3->pUsedSemaphoreList, 3); // Semaphore A ID = 1
 
 	QueueHandle_t* pQueueHandle = gll_get(sensorTask_3->pUsedQueueList, 0);  // Queue_2B
 	while (true)
 	{
-		usPrioritySemaphoreWait(pSemaphore_C, sensorTask_3, global_taskList);
 		++sensorTask_3->uCurrentValue;
 
 		//xQueueReset(*(pQueueHandle));
@@ -284,9 +272,6 @@ static void prvTaskControl1(void * pvParameters)
 
 	WorkerTask_t* controlTask_1 = (WorkerTask_t*)pvParameters;
 
-	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 1); // Semaphore A ID = 1
-	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 2
-	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 3); // Semaphore C ID = 3
 	uint8_t uQueuedValue1 = 0;
 	uint8_t uQueuedValue2 = 0;
 	uint8_t uQueuedValue3 = 0;
@@ -305,10 +290,6 @@ static void prvTaskControl1(void * pvParameters)
 		uQueuedValue3 = 0;
 
 		xQueuePeek(xQueueTickCount, &(uCurrentTickCount), (TickType_t)0);
-
-		usPrioritySemaphoreWait(pSemaphore_A, controlTask_1, global_taskList);
-		usPrioritySemaphoreWait(pSemaphore_B, controlTask_1, global_taskList);
-		usPrioritySemaphoreWait(pSemaphore_C, controlTask_1, global_taskList);
 		
 		if (xQueuePeek(xQueue1, &(uQueuedValue1), (TickType_t)0) &&
 				(
@@ -343,10 +324,6 @@ static void prvTaskControl1(void * pvParameters)
 				vPrintStringLn("");
 			}
 		}
-
-		usPrioritySemaphoreSignal(pSemaphore_C, controlTask_1);
-		usPrioritySemaphoreSignal(pSemaphore_B, controlTask_1);
-		usPrioritySemaphoreSignal(pSemaphore_A, controlTask_1);
 
 		// Task completed one period, suspend it
 

@@ -1,4 +1,4 @@
-﻿Build started 15-Jan-19 2:35:00 AM.
+﻿Build started 15-Jan-19 8:56:42 AM.
      1>Project "C:\_Milan\OneDrive\_M21\Real-Time Concepts for Embedded Systems\[06] Git-Codes\Real-Time_Concepts_for_Embedded_Systems\Assignment_5\Practical\IPC-App\FreeRTOS\RTOS_IPC\WIN32-MSVC\WIN32.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\Source\include /I"..\..\Source\portable\MSVC-MingW" /I. /ZI /nologo /Wall /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _WIN32_WINNT=0x0601 /D WINVER=0x400 /D _CRT_SECURE_NO_WARNINGS /D _VC80_UPGRADE=0x0600 /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /Gd /TC /wd4574 /wd4820 /wd4668 /wd4255 /wd4710 /analyze- /errorReport:prompt /wd4210 /wc4574 main_exercise.c
@@ -10,12 +10,12 @@
      1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(82): warning C4127: conditional expression is constant
      1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(115): warning C4127: conditional expression is constant
      1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(125): warning C4389: '==' : signed/unsigned mismatch
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(169): warning C4127: conditional expression is constant
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(218): warning C4127: conditional expression is constant
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(255): warning C4127: conditional expression is constant
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(301): warning C4127: conditional expression is constant
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(412): warning C4305: 'function' : truncation from 'int' to 'uint8_t'
-     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(452): warning C4100: 'pvParameters' : unreferenced formal parameter
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(168): warning C4127: conditional expression is constant
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(213): warning C4127: conditional expression is constant
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(244): warning C4127: conditional expression is constant
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(286): warning C4127: conditional expression is constant
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(386): warning C4305: 'function' : truncation from 'int' to 'uint8_t'
+     1>c:\_milan\onedrive\_m21\real-time concepts for embedded systems\[06] git-codes\real-time_concepts_for_embedded_systems\assignment_5\practical\ipc-app\freertos\rtos_ipc\win32-msvc\main_exercise.c(426): warning C4100: 'pvParameters' : unreferenced formal parameter
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug\RTOS_IPC.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:".\Debug/WIN32.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\Debug\RTOS_IPC.lib" /MACHINE:X86 /SAFESEH:NO .\Debug/croutine.obj
          .\Debug/event_groups.obj
@@ -38,4 +38,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.16
+Time Elapsed 00:00:03.76
