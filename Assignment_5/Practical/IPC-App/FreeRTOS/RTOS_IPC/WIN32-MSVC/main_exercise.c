@@ -19,6 +19,7 @@
 
 /* Other Includes */
 #include "workerTask.h"
+//#include "controllerTask.h"
 #include "print.h"
 #include "semaphore.h"
 #include "config.h"
@@ -50,6 +51,7 @@ const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
 /* TODO */
 static gll_t* global_taskList;
 static QueueHandle_t xQueue1, xQueue2A, xQueue2B;
+static uint32_t uCurrentTickCount = 0;
 
 static void vUselessLoad(uint32_t ulCycles);
 static void prvTaskSchedulerHandler(void *pvParameters);
@@ -104,7 +106,7 @@ void prvTaskSchedulerHandler(void *pvParameters)
 		return;
 	}
 
-	uint32_t uCurrentTickCount = 0;
+	uCurrentTickCount = 0;
 	gll_t* pTaskList = (gll_t*)pvParameters;
 	WorkerTask_t* pWorkerTask = NULL;
 
@@ -159,6 +161,7 @@ static void prvTaskSensor1(void * pvParameters)
 	WorkerTask_t* sensorTask_1 = (WorkerTask_t*)pvParameters;
 	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(sensorTask_1->pUsedSemaphoreList, 1); // Semaphore A ID = 1
 
+	QueueHandle_t* pQueueHandle = gll_get(sensorTask_1->pUsedQueueList, 0);  // Queue_1
 	while (true)
 	{	
 
@@ -172,13 +175,13 @@ static void prvTaskSensor1(void * pvParameters)
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Reseting QUEUE");
 #endif
-		xQueueReset(*(sensorTask_1->pQueueHandle));
+		xQueueReset(*(pQueueHandle));
 		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
 
 #if _DEBUG_
 		vPrintStringLn("SENSOR_1 - Sending to QUEUE");
 #endif
-		xQueueSend(*(sensorTask_1->pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
+		xQueueSend(*(pQueueHandle), (void *) &(sensorTask_1->uCurrentValue), (TickType_t)0);
 
 		usPrioritySemaphoreSignal(pSemaphore_A, sensorTask_1);
 
@@ -207,11 +210,17 @@ static void prvTaskSensor2(void * pvParameters)
 	WorkerTask_t* sensorTask_2 = (WorkerTask_t*)pvParameters;
 	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(sensorTask_2->pUsedSemaphoreList, 2); // Semaphore B ID = 1
 
+	QueueHandle_t* pQueueHandle = gll_get(sensorTask_2->pUsedQueueList, 0);  // Queue_2A
 	while (true)
 	{
 		usPrioritySemaphoreWait(pSemaphore_B, sensorTask_2, global_taskList);
+
 		++sensorTask_2->uCurrentValue;
 
+		xQueueReset(*(pQueueHandle));
+		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
+		xQueueSend(*(pQueueHandle), (void *)&(sensorTask_2->uCurrentValue), (TickType_t)0);
+		
 		usPrioritySemaphoreSignal(pSemaphore_B, sensorTask_2);
 
 
@@ -238,12 +247,15 @@ static void prvTaskSensor3(void * pvParameters)
 	WorkerTask_t* sensorTask_3 = (WorkerTask_t*)pvParameters;
 	Semaphore_t* pSemaphore_C = Semaphore_sList_GetSemaphoreById(sensorTask_3->pUsedSemaphoreList, 3); // Semaphore A ID = 1
 
+	QueueHandle_t* pQueueHandle = gll_get(sensorTask_3->pUsedQueueList, 0);  // Queue_2B
 	while (true)
 	{
 		usPrioritySemaphoreWait(pSemaphore_C, sensorTask_3, global_taskList);
 		++sensorTask_3->uCurrentValue;
 
-		usPrioritySemaphoreSignal(pSemaphore_C, sensorTask_3);
+		xQueueReset(*(pQueueHandle));
+		//xQueueOverwrite(*(sensorTask_1->pQueueHandle), &sensorTask_1->uCurrentValue);
+		xQueueSend(*(pQueueHandle), (void *)&(sensorTask_3->uCurrentValue), (TickType_t)0);
 
 #if _DEBUG_
 		vPrintString("Output sensor 3: ");
@@ -266,23 +278,29 @@ static void prvTaskControl1(void * pvParameters)
 	}
 
 	WorkerTask_t* controlTask_1 = (WorkerTask_t*)pvParameters;
+	//WorkerTask_t* controlTask_2 = (WorkerTask_t*)pvParameters;
 	Semaphore_t* pSemaphore_A = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 1); // Semaphore B ID = 1
+	Semaphore_t* pSemaphore_B = Semaphore_sList_GetSemaphoreById(controlTask_1->pUsedSemaphoreList, 2); // Semaphore B ID = 1
 	uint8_t uQueuedValue = 0;
 
-	QueueHandle_t xQueue = *(controlTask_1->pQueueHandle);
+	QueueHandle_t* pQueueHandle = gll_get(controlTask_1->pUsedQueueList, 0);  // Queue_1
+	QueueHandle_t xQueue1 = 0;
+	//if (pQueueHandle != NULL)
+		xQueue1 = *pQueueHandle;
+	//QueueHandle_t xQueue2 = *(controlTask_2->pQueueHandle);
 
 	while (true)
 	{
 		usPrioritySemaphoreWait(pSemaphore_A, controlTask_1, global_taskList);
 		
-		if (xQueue != 0)
+		if (xQueue1 != 0)
 		{
-			if (xQueueReceive(xQueue, &(uQueuedValue), (TickType_t)1))
+			if (xQueueReceive(xQueue1, &(uQueuedValue), (TickType_t)1))
 			{
 				if (uQueuedValue != 0)
 				{
 					vPrintString("Controller 1 has received sensor data at: ");
-					printf("%lu", xTaskGetTickCount());
+					vPrintUnsignedInteger(uCurrentTickCount);
 					vPrintString("; Sensor1: ");
 					vPrintUnsignedInteger(uQueuedValue);
 					vPrintStringLn("");
@@ -320,32 +338,47 @@ void vInitialize(
 	gll_t* semaphoreList_task_control1 = gll_init();
 	gll_t* semaphoreList_task_control2 = gll_init();
 
+	gll_t* queueList_task_sensor1 = gll_init();
+	gll_t* queueList_task_sensor2 = gll_init();
+	gll_t* queueList_task_sensor3 = gll_init();
+	gll_t* queueList_task_control1 = gll_init();
+	gll_t* queueList_task_control2 = gll_init();
+
 	Semaphore_t* pSemaphore_A = Semaphore_Create(5, 1);
 	Semaphore_t* pSemaphore_B = Semaphore_Create(5, 2);
 	Semaphore_t* pSemaphore_C = Semaphore_Create(5, 3);
 
-	xQueue1 = xQueueCreate(1, sizeof(uint8_t));
+	xQueue1  = xQueueCreate(1, sizeof(uint8_t));
 	xQueue2A = xQueueCreate(1, sizeof(uint8_t));
 	xQueue2B = xQueueCreate(1, sizeof(uint8_t));
 
 	gll_push(semaphoreList_task_sensor1, pSemaphore_A);
-	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, semaphoreList_task_sensor1, &xQueue1);
+	gll_push(queueList_task_sensor1, &xQueue1);
+	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, semaphoreList_task_sensor1, queueList_task_sensor1);
 
 	gll_push(semaphoreList_task_sensor2, pSemaphore_B);
-	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, semaphoreList_task_sensor2, &xQueue2A);
+	gll_push(queueList_task_sensor2, &xQueue2A);
+	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, semaphoreList_task_sensor2, queueList_task_sensor2);
 
 	gll_push(semaphoreList_task_sensor3, pSemaphore_C);
-	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, semaphoreList_task_sensor3, &xQueue2B);
+	gll_push(queueList_task_sensor3, &xQueue2B);
+	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, semaphoreList_task_sensor3, queueList_task_sensor3);
 
 	gll_push(semaphoreList_task_control1, pSemaphore_A);
 	gll_push(semaphoreList_task_control1, pSemaphore_B);
 	gll_push(semaphoreList_task_control1, pSemaphore_C);
-	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 0, 0, 100, semaphoreList_task_control1, &xQueue1);
+	gll_push(queueList_task_control1, &xQueue2B);
+	gll_push(queueList_task_control1, &xQueue2A);
+	gll_push(queueList_task_control1, &xQueue1);
+	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 0, 0, 100, semaphoreList_task_control1, queueList_task_control1);
 
 	gll_push(semaphoreList_task_control2, pSemaphore_A);
 	gll_push(semaphoreList_task_control2, pSemaphore_B);
 	gll_push(semaphoreList_task_control2, pSemaphore_C);
-	pTask_Control2 = WorkerTask_Create(taskHandler_Control1, 5, 2, 0, 0, 100, semaphoreList_task_control2, &xQueue2A);
+	gll_push(queueList_task_control2, &xQueue2B);
+	gll_push(queueList_task_control2, &xQueue2A);
+	gll_push(queueList_task_control2, &xQueue1);
+	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 0, 0, 100, semaphoreList_task_control2, queueList_task_control2);
 
 	// push NULL, since we do not want to use index = 0, indexing should start from 1 (e.g. Task_1)
 	gll_pushBack(global_taskList, pTask_Sensor1);
@@ -369,3 +402,26 @@ void vInitialize(
 }
 
 static void prvTaskControl2(void *pvParameters){}
+
+/*
+QueueHandle_t* Queue_sList_GetQueueById(gll_t* pQueueList, uint8_t uId) {
+	if (pQueueList == NULL || uId < 0) {
+#if DEBUG
+		vPrintStringLn("Error in function 'Semaphore_usList_GetSemaphoreById'. NULL Pointer or wrong uId");
+#endif
+		return NULL;
+	}
+
+	for (uint8_t uIndex = 0; uIndex < pQueueList->size; ++uIndex) {
+
+		QueueHandle_t* pQueueHandle = gll_get(pQueueList, uIndex);
+		if (pQueueHandle != NULL &&
+			pQueueHandle->uId == uId) {
+
+			return pQueueHandle;
+		}
+	}
+
+	return NULL;
+}
+*/

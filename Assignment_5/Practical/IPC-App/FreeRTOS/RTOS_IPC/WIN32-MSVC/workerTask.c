@@ -9,7 +9,8 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	uint8_t uEndValue,
 	uint16_t uPeriod,
 	gll_t* pUsedSemaphoreList,
-	QueueHandle_t* pQueueHandle)
+	gll_t* pUsedQueueList)
+	//QueueHandle_t* pQueueHandle)
 {
 
 	if (pUsedSemaphoreList == NULL) {
@@ -32,7 +33,8 @@ WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	pWorkerTask->uCurrentValue = uStartValue;
 	pWorkerTask->uEndValue = uEndValue;
 	pWorkerTask->uReleaseTime = 0;
-	pWorkerTask->pQueueHandle = pQueueHandle;
+	//pWorkerTask->pQueueHandle = pQueueHandle;
+	pWorkerTask->pUsedQueueList = pUsedQueueList;
 
 	xTaskCreate(taskHandler, "Task 0", 1000, pWorkerTask, pWorkerTask->uNominalPriority, &pWorkerTask->xHandle);
 
