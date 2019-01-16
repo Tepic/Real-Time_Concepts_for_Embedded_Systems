@@ -20,7 +20,7 @@
 #include "workerTask.h"
 //#include "controllerTask.h"
 #include "print.h"
-#include "config.h"
+//#include "config.h"
 #include "event_groups.h"
 
 #define mainNUMBER_OF_SEMAPHORS					( 3 )
@@ -76,14 +76,14 @@ static gll_t* global_taskList;
 *	management instead of checking if the queue is not empty (firstly doing
 *	peek and then receive if it is not empty.
 *	------------------------------------------------------------------------
-*						xEventGroup - 5bit register of events
-*		Bits |						Description
+*	                     xEventGroup - 5bit register of events
+*	    Bits |                      Description
 *	________________________________________________________________________
-*		 4	 |	Controller 1 status: 1 - Actived; 0 - Deactivated
-*		 3	 |	Controller 2 status: 1 - Actived; 0 - Deactivated
-*		 2	 |	Queue 1  status:	 1 - new data ready; 0 - empty
-*		 1	 |	Queue 2A status:	 1 - new data ready; 0 - empty
-*		 0	 |	Queue 2B status:	 1 - new data ready; 0 - empty
+*	     4   |  Controller 1 status: 1 - Actived; 0 - Deactivated
+*	     3   |  Controller 2 status: 1 - Actived; 0 - Deactivated
+*	     2   |  Queue 1  status:     1 - new data ready; 0 - empty
+*	     1   |  Queue 2A status:     1 - new data ready; 0 - empty
+*	     0   |  Queue 2B status:     1 - new data ready; 0 - empty
 *	========================================================================
 *	========================================================================
 */
@@ -151,23 +151,23 @@ void prvTaskSchedulerHandler(void *pvParameters)
 			*	
 			*	NOTE: uIndex = Task ID - 1
 			*	 ________________________________________
-			*	|			 |							 |
-			*	|	Task ID  |		 Description		 |
+			*	|            |                           |
+			*	|   Task ID  |        Description        |
 			*	|____________|___________________________|
-			*	|			 |							 |
-			*	|	   1	 |		   Sensor 1			 |
+			*	|			 |                           |
+			*	|      1     |         Sensor 1          |
 			*	|____________|___________________________|
-			*	|			 |							 |
-			*	|	   2	 |		   Sensor 2			 |
+			*	|			 |                           |
+			*	|      2     |         Sensor 2          |
 			*	|____________|___________________________|
-			*	|			 |							 |
-			*	|	   3	 |		   Sensor 3			 |
+			*	|			 |                           |
+			*	|      3     |         Sensor 3          |
 			*	|____________|___________________________|
-			*	|			 |							 |
-			*	|	   4	 |		 Controller 1		 |
+			*	|			 |                           |
+			*	|      4     |       Controller 1        |
 			*	|____________|___________________________|
-			*	|			 |							 |
-			*	|	   5	 |		 Controller 2		 |
+			*	|			 |                           |
+			*	|      5     |       Controller 2        |
 			*	|____________|___________________________|
 			*/
 			pWorkerTask = gll_get(pTaskList, uIndex);
@@ -218,6 +218,7 @@ void prvTaskSchedulerHandler(void *pvParameters)
 		// Increase time
 		++uCurrentTickCount;
 		// Write time in the queue so the other tasks can see time update
+		// We use overwrite since the queue has the size 1 and we want to delete old time value
 		xQueueOverwrite(xQueueTickCount, (void *)&uCurrentTickCount);
 		// Sleep for some time - i.e. 1ms
 		vTaskDelay(TASK_SCHEDULER_TICK_TIME * SCHEDULER_OUTPUT_FREQUENCY_MS);
@@ -263,6 +264,7 @@ static void prvTaskSensor(void * pvParameters)
 		uxBits = (const) BIT_0 << (3 - sensorTask->uTaskNumber);
 
 		// Write sensor 'readings' in the corresponding sensor's queue
+		// We use overwrite since the queue has the size 1 and we want to delete old value/old 'sensor reading'
 		xQueueOverwrite(*(pQueueHandle), &sensorTask->uCurrentValue);
 
 		// Raise the event flag of the corresponding BIT flag
@@ -328,6 +330,8 @@ static void prvTaskControl(void * pvParameters)
 			// Check if there are values in Queue 1 and Queue 2A
 			if ((uxBits & (BIT_2)) && ((uxBits & (BIT_1))))
 			{
+				// Read Queue 1 and Queue 2A
+				// xQueueReceive will take the value from the queue and delete it from the queue - it will pop the value from the queue
 				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
 				xQueueReceive(xQueue2A, &(uQueuedValue2), (TickType_t)0);
 
@@ -351,6 +355,7 @@ static void prvTaskControl(void * pvParameters)
 			else if ((uxBits & (BIT_2)) && ((uxBits & (BIT_0))))
 			{
 				// Read Queue 1 and Queue 2B
+				// xQueueReceive will take the value from the queue and delete it from the queue - it will pop the value from the queue
 				xQueueReceive(xQueue1, &(uQueuedValue1), (TickType_t)0);
 				xQueueReceive(xQueue2B, &(uQueuedValue3), (TickType_t)0);
 
@@ -369,7 +374,6 @@ static void prvTaskControl(void * pvParameters)
 				vPrintString("; Sensor2: ");
 				vPrintUnsignedInteger(uQueuedValue3);
 				vPrintStringLn("");
-
 			}
 		}
 
@@ -415,26 +419,31 @@ void vInitialize(
 
 	// SENSOR 1
 	gll_push(queueList_task_sensor1, &xQueue1);
+	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
 	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, queueList_task_sensor1);
 
 	// SENSOR 2
 	gll_push(queueList_task_sensor2, &xQueue2A);
+	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
 	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, queueList_task_sensor2);
 
 	// SENSOR 3
 	gll_push(queueList_task_sensor3, &xQueue2B);
+	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
 	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, queueList_task_sensor3);
 
 	// CONTROLLER 1
 	gll_push(queueList_task_control1, &xQueue2B);
 	gll_push(queueList_task_control1, &xQueue2A);
 	gll_push(queueList_task_control1, &xQueue1);
+	// arg = {task handler, task ID, controller # (i.e. #1), not used (any number when defining controller), task's period, list of queues that controller is connected to}
 	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 1, 0, 100, queueList_task_control1);
 
 	// CONTROLLER 2
 	gll_push(queueList_task_control2, &xQueue2B);
 	gll_push(queueList_task_control2, &xQueue2A);
 	gll_push(queueList_task_control2, &xQueue1);
+	// arg = {task handler, task ID, controller # (i.e. #2), not used (any number when defining controller), task's period, list of queues that controller is connected to}
 	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 2, 0, 100, queueList_task_control2);
 
 	gll_pushBack(global_taskList, pTask_Sensor1);	// index 0

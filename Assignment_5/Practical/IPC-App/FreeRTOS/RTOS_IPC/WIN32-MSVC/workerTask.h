@@ -23,10 +23,20 @@ typedef struct workerTask
 	uint8_t uTaskNumber;
 	uint8_t uPriorityLevel;
 	uint8_t uReleaseTime;
+
+	// In sensor tasks uStartValue will be used to start the counter
+	// In control tasks uStartValue will define if the controller is main (=1) or back-up (=2) one
 	uint16_t uStartValue;
+
+	// Current value of the sensor counter
 	uint16_t uCurrentValue;
+
+	// Ceilling value of the counter at which the counter wraps around
 	uint16_t uEndValue;
+
 	uint16_t uPeriod;
+
+	// List of queues that the task's instance is connected to
 	gll_t* pUsedQueueList;
 
 } WorkerTask_t;

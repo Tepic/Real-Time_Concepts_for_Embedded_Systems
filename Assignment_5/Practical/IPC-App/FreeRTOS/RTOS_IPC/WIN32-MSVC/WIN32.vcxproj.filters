@@ -120,9 +120,6 @@
     <ClInclude Include="bool_t.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>RTOS_ICP\Exercise</Filter>
-    </ClInclude>
     <ClInclude Include="gll.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>

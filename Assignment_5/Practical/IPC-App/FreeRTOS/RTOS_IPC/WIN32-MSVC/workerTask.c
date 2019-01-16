@@ -1,6 +1,5 @@
 #include "workerTask.h"
 #include "print.h"
-#include "config.h"
 
 WorkerTask_t* WorkerTask_Create(TaskFunction_t taskHandler,
 	uint8_t uTaskNumber,
