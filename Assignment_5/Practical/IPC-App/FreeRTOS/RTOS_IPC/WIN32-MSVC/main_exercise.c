@@ -42,6 +42,8 @@
 /* TODO: output frequencey */
 TickType_t currentTime = 0;
 const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
+const TickType_t WAIT_MS = 1 / portTICK_PERIOD_MS;
+
 
 /* TODO */
 static gll_t* global_taskList;
@@ -263,6 +265,13 @@ static void prvTaskSensor(void * pvParameters)
 		*/
 		uxBits = (const) BIT_0 << (3 - sensorTask->uTaskNumber);
 
+		// If it is Sensor 1 => insert small delay
+		// Delay is used so simulate longer execution of write command executed by Sensor 1
+		if (sensorTask->uTaskNumber == 1)
+		{
+			// Delay for 1ms
+			vTaskDelay(1 * WAIT_MS);
+		}
 		// Write sensor 'readings' in the corresponding sensor's queue
 		// We use overwrite since the queue has the size 1 and we want to delete old value/old 'sensor reading'
 		xQueueOverwrite(*(pQueueHandle), &sensorTask->uCurrentValue);
@@ -320,7 +329,11 @@ static void prvTaskControl(void * pvParameters)
 		// Read status register
 		// first pdFALSE is for xClearOnExit. It is used to notify following function NOT to delete status registers, just to READ THEM
 		// second pdFALSE is for xWaitForAllBits. It is used to notify if the function needs to wait for all bits to be asserted (logical AND)
-		uxBits = xEventGroupWaitBits(xEventGroup, BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4, pdFALSE, pdFALSE, (TickType_t)0);
+		uxBits = xEventGroupWaitBits(xEventGroup, BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4, pdFALSE, pdFALSE, (TickType_t) 1 * WAIT_MS);
+
+		// Since previous delay in reading event bit has not worked out for no reason
+		// The follwoing line OVERWRITES BIT_2 which corresponds if it is written in Queue 1
+		uxBits = uxBits | (xQueuePeek(xQueue1, &(uQueuedValue1), (TickType_t)1) << 2);
 
 		// Check if there is an Controller 1 or 2 runnig
 		if (((uxBits & (BIT_4)) && controlTask->uStartValue == 1) || ((uxBits & (BIT_3)) && controlTask->uStartValue == 2))
@@ -437,14 +450,14 @@ void vInitialize(
 	gll_push(queueList_task_control1, &xQueue2A);
 	gll_push(queueList_task_control1, &xQueue1);
 	// arg = {task handler, task ID, controller # (i.e. #1), not used (any number when defining controller), task's period, list of queues that controller is connected to}
-	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 1, 0, 100, queueList_task_control1);
+	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 3, 1, 0, 100, queueList_task_control1);
 
 	// CONTROLLER 2
 	gll_push(queueList_task_control2, &xQueue2B);
 	gll_push(queueList_task_control2, &xQueue2A);
 	gll_push(queueList_task_control2, &xQueue1);
 	// arg = {task handler, task ID, controller # (i.e. #2), not used (any number when defining controller), task's period, list of queues that controller is connected to}
-	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 2, 0, 100, queueList_task_control2);
+	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 3, 2, 0, 100, queueList_task_control2);
 
 	gll_pushBack(global_taskList, pTask_Sensor1);	// index 0
 	gll_pushBack(global_taskList, pTask_Sensor2);	// index 1
