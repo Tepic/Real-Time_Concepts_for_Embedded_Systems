@@ -17,13 +17,13 @@
 #include "timers.h"
 
 /* Other Includes */
-#include "workerTask.h"
-//#include "controllerTask.h"
+#include "controllerTask.h"
+#include "sensorTask.h"
 #include "print.h"
-//#include "config.h"
 #include "event_groups.h"
 
-#define mainNUMBER_OF_SEMAPHORS					( 3 )
+/* DEBUG - DELAY SENSOR 1 WRITING */
+#define DELAY_SENSOR_1 false
 
 /* TODO: output frequencey
 */
@@ -42,6 +42,8 @@
 /* TODO: output frequencey */
 TickType_t currentTime = 0;
 const TickType_t SCHEDULER_OUTPUT_FREQUENCY_MS = 1 / portTICK_PERIOD_MS;
+const TickType_t WAIT_MS = 1 / portTICK_PERIOD_MS;
+
 
 /* TODO */
 static gll_t* global_taskList;
@@ -132,7 +134,8 @@ void prvTaskSchedulerHandler(void *pvParameters)
 	gll_t* pTaskList = (gll_t*)pvParameters;
 
 	// The same base for sensor and controller is used
-	WorkerTask_t* pWorkerTask = NULL;
+	ControllerTask_t* pControllerTask = NULL;
+	SensorTask_t* pSensorTask = NULL;
 
 	// Variable used for storing the read event status 'register'
 	EventBits_t uxBits;
@@ -170,48 +173,68 @@ void prvTaskSchedulerHandler(void *pvParameters)
 			*	|      5     |       Controller 2        |
 			*	|____________|___________________________|
 			*/
-			pWorkerTask = gll_get(pTaskList, uIndex);
-
-			// Firstly check if task is still active
-			// When Controller fails, task will not exist (will be deleted by itself)
-			if (pWorkerTask->xHandle != NULL)
+			if (uIndex > 2)
 			{
-				// If task exist check if it is released
-				if ((uCurrentTickCount >= pWorkerTask->uReleaseTime) &&
-					((uCurrentTickCount % pWorkerTask->uPeriod) == (pWorkerTask->uReleaseTime % pWorkerTask->uPeriod)))
+				pControllerTask = gll_get(pTaskList, uIndex);
+
+				// Firstly check if task is still active
+				// When Controller fails, task will not exist (will be deleted by itself)
+				if (pControllerTask->xHandle != NULL)
 				{
-					// Execute task
-					vTaskResume(pWorkerTask->xHandle);
+					// If task exist check if it is released
+					if ((uCurrentTickCount >= pControllerTask->uReleaseTime) &&
+						((uCurrentTickCount % pControllerTask->uPeriod) == (pControllerTask->uReleaseTime % pControllerTask->uPeriod)))
+					{
+						// Execute task
+						vTaskResume(pControllerTask->xHandle);
+					}
+				}
+
+				/*
+				*	If task does NOT exist it means it has failed.
+				*	----------------------------------------------------------------------------
+				*	NOTE 1:
+				*	Since we have only one controller that can fail (considering Assignment 5),
+				*	only that Controlle 1 task is checked. Its ID is 4, meaning uIndex is 3.
+				*	----------------------------------------------------------------------------
+				*	NOTE 2:
+				*	Beside task ID, we check if the controller 1 is activated by checking
+				*	corresponding BIT_4. If it is 0, it would mean that it is already
+				*	deactivated. We do NOT delete the position of Controller 1 task in global
+				*	task list in case of it's recovery. In that case BIT_4 should have been
+				*	asserted manually in some other place and BIT_3 deasserted in order to
+				*	deactivate Controller 2 (back-up controller).
+				*	----------------------------------------------------------------------------
+				*	NOTE 3:
+				*	For further improvements and exceptions free work, failure of Controller 2
+				*	should have been checked too. Otherwise, an Assert fail will happend throwing
+				*	an exception and blocking the whole system.
+				*	----------------------------------------------------------------------------
+				*/
+				else if (uIndex == 3 && (uxBits & BIT_4) != 0)
+				{
+					// Deactivate Controller 1
+					xEventGroupClearBits(xEventGroup, BIT_4);
+					// Activate Controller 2
+					xEventGroupSetBits(xEventGroup, BIT_3);
 				}
 			}
-
-			/*
-			*	If task does NOT exist it means it has failed.
-			*	----------------------------------------------------------------------------
-			*	NOTE 1:
-			*	Since we have only one controller that can fail (considering Assignment 5),
-			*	only that Controlle 1 task is checked. Its ID is 4, meaning uIndex is 3.
-			*	----------------------------------------------------------------------------
-			*	NOTE 2:
-			*	Beside task ID, we check if the controller 1 is activated by checking
-			*	corresponding BIT_4. If it is 0, it would mean that it is already
-			*	deactivated. We do NOT delete the position of Controller 1 task in global
-			*	task list in case of it's recovery. In that case BIT_4 should have been
-			*	asserted manually in some other place and BIT_3 deasserted in order to
-			*	deactivate Controller 2 (back-up controller).
-			*	----------------------------------------------------------------------------
-			*	NOTE 3:
-			*	For further improvements and exceptions free work, failure of Controller 2
-			*	should have been checked too. Otherwise, an Assert fail will happend throwing
-			*	an exception and blocking the whole system.	
-			*	----------------------------------------------------------------------------
-			*/
-			else if (uIndex == 3 && (uxBits & BIT_4)!=0)
+			else
 			{
-				// Deactivate Controller 1
-				xEventGroupClearBits(xEventGroup, BIT_4);
-				// Activate Controller 2
-				xEventGroupSetBits(xEventGroup, BIT_3);
+				pSensorTask = gll_get(pTaskList, uIndex);
+
+				// Firstly check if task is still active
+				// When Controller fails, task will not exist (will be deleted by itself)
+				if (pSensorTask->xHandle != NULL)
+				{
+					// If task exist check if it is released
+					if ((uCurrentTickCount >= pSensorTask->uReleaseTime) &&
+						((uCurrentTickCount % pSensorTask->uPeriod) == (pSensorTask->uReleaseTime % pSensorTask->uPeriod)))
+					{
+						// Execute task
+						vTaskResume(pSensorTask->xHandle);
+					}
+				}
 			}
 		}
 
@@ -231,10 +254,10 @@ void prvTaskSchedulerHandler(void *pvParameters)
 static void prvTaskSensor(void * pvParameters)
 {
 	// Initializations
-	WorkerTask_t* sensorTask = (WorkerTask_t*)pvParameters;
+	SensorTask_t* sensorTask = (SensorTask_t*)pvParameters;
 
 	// Queue where the read data will be stored
-	QueueHandle_t* pQueueHandle = gll_get(sensorTask->pUsedQueueList, 0);
+	QueueHandle_t* pQueueHandle = sensorTask->pUsedQueue;
 
 	// event group - register with status bits
 	EventBits_t uxBits;
@@ -263,6 +286,13 @@ static void prvTaskSensor(void * pvParameters)
 		*/
 		uxBits = (const) BIT_0 << (3 - sensorTask->uTaskNumber);
 
+		// If it is Sensor 1 => insert small delay
+		// Delay is used so simulate longer execution of write command executed by Sensor 1
+		if (sensorTask->uTaskNumber == 1 && DELAY_SENSOR_1==true)
+		{
+			// Delay for 1ms
+			vTaskDelay(1 * WAIT_MS);
+		}
 		// Write sensor 'readings' in the corresponding sensor's queue
 		// We use overwrite since the queue has the size 1 and we want to delete old value/old 'sensor reading'
 		xQueueOverwrite(*(pQueueHandle), &sensorTask->uCurrentValue);
@@ -282,7 +312,7 @@ static void prvTaskControl(void * pvParameters)
 {
 	// Initializations
 	uint32_t uCurrentTickCount = 0;
-	WorkerTask_t* controlTask = (WorkerTask_t*)pvParameters;
+	ControllerTask_t* controlTask = (ControllerTask_t*)pvParameters;
 
 	// Controllers are connected to all three queues
 	uint16_t uQueuedValue1 = 0;
@@ -305,7 +335,7 @@ static void prvTaskControl(void * pvParameters)
 
 		// Simulate Controller 1 value.
 		// uStartValue for controller means if the controller is main (=1) or back-up (=2)
-		if (uCurrentTickCount >= 2001 && controlTask->uStartValue == 1)
+		if (uCurrentTickCount >= 2001 && controlTask->uControllerID == 1)
 		{
 			vPrintString("Controller 1 has had an error at ");
 			vPrintUnsignedInteger(uCurrentTickCount);
@@ -320,10 +350,15 @@ static void prvTaskControl(void * pvParameters)
 		// Read status register
 		// first pdFALSE is for xClearOnExit. It is used to notify following function NOT to delete status registers, just to READ THEM
 		// second pdFALSE is for xWaitForAllBits. It is used to notify if the function needs to wait for all bits to be asserted (logical AND)
-		uxBits = xEventGroupWaitBits(xEventGroup, BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4, pdFALSE, pdFALSE, (TickType_t)0);
+		uxBits = xEventGroupWaitBits(xEventGroup, BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4, pdFALSE, pdFALSE, (TickType_t) 1 * WAIT_MS);
+
+		// Since previous delay in reading event bit has not worked out for no reason
+		// The follwoing line OVERWRITES BIT_2 which corresponds if it is written in Queue 1
+		if (DELAY_SENSOR_1 == true)
+			uxBits = uxBits | (xQueuePeek(xQueue1, &(uQueuedValue1), (TickType_t)1) << 2);
 
 		// Check if there is an Controller 1 or 2 runnig
-		if (((uxBits & (BIT_4)) && controlTask->uStartValue == 1) || ((uxBits & (BIT_3)) && controlTask->uStartValue == 2))
+		if (((uxBits & (BIT_4)) && controlTask->uControllerID == 1) || ((uxBits & (BIT_3)) && controlTask->uControllerID == 2))
 		{
 			// Now we need to check if there are values in Queue 1 and Queue2x
 			
@@ -342,7 +377,7 @@ static void prvTaskControl(void * pvParameters)
 
 				// Print Out
 				vPrintString("Controller ");
-				vPrintUnsignedInteger(controlTask->uStartValue);
+				vPrintUnsignedInteger(controlTask->uControllerID);
 				vPrintString(" has received sensor data at: ");
 				vPrintUnsignedInteger(uCurrentTickCount);
 				vPrintString("; Sensor1: ");
@@ -366,7 +401,7 @@ static void prvTaskControl(void * pvParameters)
 
 				// Print Out
 				vPrintString("Controller ");
-				vPrintUnsignedInteger(controlTask->uStartValue);
+				vPrintUnsignedInteger(controlTask->uControllerID);
 				vPrintString(" has received sensor data at: ");
 				vPrintUnsignedInteger(uCurrentTickCount);
 				vPrintString("; Sensor1: ");
@@ -394,11 +429,11 @@ void vInitialize(
 	xEventGroup = xEventGroupCreate();
 
 	// Define pointer to tasks
-	WorkerTask_t* pTask_Sensor1 = NULL;
-	WorkerTask_t* pTask_Sensor2 = NULL;
-	WorkerTask_t* pTask_Sensor3 = NULL;
-	WorkerTask_t* pTask_Control1 = NULL;
-	WorkerTask_t* pTask_Control2 = NULL;
+	SensorTask_t* pTask_Sensor1 = NULL;
+	SensorTask_t* pTask_Sensor2 = NULL;
+	SensorTask_t* pTask_Sensor3 = NULL;
+	ControllerTask_t* pTask_Control1 = NULL;
+	ControllerTask_t* pTask_Control2 = NULL;
 
 	// Initialize global task list
 	global_taskList = gll_init();
@@ -420,31 +455,31 @@ void vInitialize(
 	// SENSOR 1
 	gll_push(queueList_task_sensor1, &xQueue1);
 	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
-	pTask_Sensor1 = WorkerTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, queueList_task_sensor1);
+	pTask_Sensor1 = SensorTask_Create(taskHandler_Sensor1, 1, 3, 100, 199, 200, &xQueue1);
 
 	// SENSOR 2
 	gll_push(queueList_task_sensor2, &xQueue2A);
 	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
-	pTask_Sensor2 = WorkerTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, queueList_task_sensor2);
+	pTask_Sensor2 = SensorTask_Create(taskHandler_Sensor2, 2, 3, 200, 249, 500, &xQueue2A);
 
 	// SENSOR 3
 	gll_push(queueList_task_sensor3, &xQueue2B);
 	// arg = {task handler, task ID, starting counting value, last counted value, task's period, list of queues that sensor is connected to (i.e. the queue has a single element)}
-	pTask_Sensor3 = WorkerTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, queueList_task_sensor3);
+	pTask_Sensor3 = SensorTask_Create(taskHandler_Sensor3, 3, 3, 250, 299, 1400, &xQueue2B);
 
 	// CONTROLLER 1
 	gll_push(queueList_task_control1, &xQueue2B);
 	gll_push(queueList_task_control1, &xQueue2A);
 	gll_push(queueList_task_control1, &xQueue1);
 	// arg = {task handler, task ID, controller # (i.e. #1), not used (any number when defining controller), task's period, list of queues that controller is connected to}
-	pTask_Control1 = WorkerTask_Create(taskHandler_Control1, 4, 2, 1, 0, 100, queueList_task_control1);
+	pTask_Control1 = ControllerTask_Create(taskHandler_Control1, 4, 3, 1, 100, queueList_task_control1);
 
 	// CONTROLLER 2
 	gll_push(queueList_task_control2, &xQueue2B);
 	gll_push(queueList_task_control2, &xQueue2A);
 	gll_push(queueList_task_control2, &xQueue1);
 	// arg = {task handler, task ID, controller # (i.e. #2), not used (any number when defining controller), task's period, list of queues that controller is connected to}
-	pTask_Control2 = WorkerTask_Create(taskHandler_Control2, 5, 2, 2, 0, 100, queueList_task_control2);
+	pTask_Control2 = ControllerTask_Create(taskHandler_Control2, 5, 3, 2, 100, queueList_task_control2);
 
 	gll_pushBack(global_taskList, pTask_Sensor1);	// index 0
 	gll_pushBack(global_taskList, pTask_Sensor2);	// index 1
