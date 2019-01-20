@@ -67,10 +67,13 @@
     <ClCompile Include="main_exercise.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
-    <ClCompile Include="workerTask.c">
+    <ClCompile Include="gll.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
-    <ClCompile Include="gll.c">
+    <ClCompile Include="sensorTask.c">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClCompile>
+    <ClCompile Include="controllerTask.c">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClCompile>
   </ItemGroup>
@@ -126,7 +129,10 @@
     <ClInclude Include="print.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
-    <ClInclude Include="workerTask.h">
+    <ClInclude Include="sensorTask.h">
+      <Filter>RTOS_ICP\Exercise</Filter>
+    </ClInclude>
+    <ClInclude Include="controllerTask.h">
       <Filter>RTOS_ICP\Exercise</Filter>
     </ClInclude>
   </ItemGroup>

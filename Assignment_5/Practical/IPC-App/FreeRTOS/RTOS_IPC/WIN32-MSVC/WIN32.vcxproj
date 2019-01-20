@@ -104,7 +104,8 @@
     </ClCompile>
     <ClCompile Include="main_exercise.c" />
     <ClCompile Include="Run-time-stats-utils.c" />
-    <ClCompile Include="workerTask.c" />
+    <ClCompile Include="sensorTask.c" />
+    <ClCompile Include="controllerTask.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\include\event_groups.h" />
@@ -124,7 +125,8 @@
     <ClInclude Include="..\..\Source\include\task.h" />
     <ClInclude Include="gll.h" />
     <ClInclude Include="print.h" />
-    <ClInclude Include="workerTask.h" />
+    <ClInclude Include="sensorTask.h" />
+    <ClInclude Include="controllerTask.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
